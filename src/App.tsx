@@ -32,7 +32,7 @@ export default function App() {
             Col 1 (inputs):  BaseInputs, YeastSelector, FermentationPhases, WBlendCard
             Col 2 (outputs): HydrationGauge, FlourActual, IngredientsCard, FermentationSummary
         */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:items-start">
           <div className="order-1 lg:col-start-1 lg:row-start-1"><BaseInputs /></div>
           <div className="order-2 lg:col-start-2 lg:row-start-1"><HydrationGauge /></div>
           <div className="order-3 lg:col-start-1 lg:row-start-2"><YeastSelector /></div>
