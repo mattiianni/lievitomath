@@ -18,7 +18,8 @@ export interface FermentationPhase {
   k: number;        // coefficiente fase: 1.0 puntata, 0.2 frigo, 0.6 appretto
   active: boolean;  // il frigo può essere disattivato
   locked?: boolean; // fase non disattivabile (puntata base)
-  flourPercent?: number; // solo biga/poolish: % della farina totale nel prefermento
+  flourPercent?: number;      // solo biga/poolish: % della farina totale nel prefermento
+  hydrationPercent?: number;  // solo biga/poolish: % idratazione del prefermento
 }
 
 export interface DoughState {

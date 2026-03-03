@@ -15,8 +15,8 @@ export const HYDRATION_RANGES: Record<DoughMode, HydrationRange> = {
 };
 
 const PREFERMENTO_PHASES: FermentationPhase[] = [
-  { id: 'biga',    label: 'Biga',    hours: 18, temperatureCelsius: 18, k: 1.0, active: false, flourPercent: 40 },
-  { id: 'poolish', label: 'Poolish', hours: 12, temperatureCelsius: 20, k: 1.0, active: false, flourPercent: 30 },
+  { id: 'biga',    label: 'Biga',    hours: 18, temperatureCelsius: 18, k: 1.0, active: false, flourPercent: 40, hydrationPercent: 44 },
+  { id: 'poolish', label: 'Poolish', hours: 12, temperatureCelsius: 20, k: 1.0, active: false, flourPercent: 30, hydrationPercent: 100 },
 ];
 
 const DEFAULT_PHASES: Record<DoughMode, FermentationPhase[]> = {

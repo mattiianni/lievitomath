@@ -73,15 +73,15 @@ export function IngredientsCard() {
     el.innerHTML = `
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-      <div style="font-family:'Inter',sans-serif; max-width:620px; margin:0 auto; color:#1a1a1a;">
+      <div style="font-family:'Inter',sans-serif; max-width:100%; margin:0 auto; color:#1a1a1a; font-size:11px;">
 
         <!-- HEADER -->
-        <div style="background:linear-gradient(135deg,#ea580c,#f97316); border-radius:12px; padding:18px 22px; margin-bottom:20px; color:white;">
+        <div style="background:linear-gradient(135deg,#ea580c,#f97316); border-radius:10px; padding:12px 16px; margin-bottom:14px; color:white;">
           <div style="display:flex; align-items:center; justify-content:space-between;">
-            <h1 style="font-family:'Lobster',cursive; font-size:32px; margin:0; letter-spacing:0.5px;">LievitoMath</h1>
+            <h1 style="font-family:'Lobster',cursive; font-size:24px; margin:0; letter-spacing:0.5px;">LievitoMath</h1>
             <div style="text-align:right; font-size:12px; opacity:0.85;">${date}</div>
           </div>
-          <div style="margin-top:8px; font-size:15px; font-weight:600;">
+          <div style="margin-top:6px; font-size:13px; font-weight:600;">
             ${MODE_NAME[mode]} — ${state.pieces} × ${state.weightPerPiece}g
           </div>
           <div style="margin-top:4px; font-size:12px; opacity:0.85;">
@@ -90,7 +90,7 @@ export function IngredientsCard() {
         </div>
 
         <!-- INGREDIENTI -->
-        <div style="margin-bottom:20px;">
+        <div style="margin-bottom:12px;">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
             <div style="width:4px; height:20px; background:#ea580c; border-radius:2px;"></div>
             <h2 style="font-size:14px; font-weight:700; color:#ea580c; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Ingredienti</h2>
@@ -103,20 +103,20 @@ export function IngredientsCard() {
               </p>
               <table style="width:100%; border-collapse:collapse; font-size:14px;">
                 <tr style="border-bottom:1px solid rgba(0,0,0,0.08);">
-                  <td style="padding:7px 4px;">Farina <span style="font-size:11px; color:#999;">(${prefermentiSplit.prefermento.flourPercent}%)</span></td>
-                  <td style="padding:7px 4px; text-align:right; font-size:17px; font-weight:700;">${prefermentiSplit.prefermento.flour}<span style="font-size:12px; font-weight:400; color:#888;">g</span></td>
+                  <td style="padding:4px 4px;">Farina <span style="font-size:10px; color:#999;">(${prefermentiSplit.prefermento.flourPercent}%)</span></td>
+                  <td style="padding:4px 4px; text-align:right; font-size:14px; font-weight:700;">${prefermentiSplit.prefermento.flour}<span style="font-size:11px; font-weight:400; color:#888;">g</span></td>
                 </tr>
                 <tr style="border-bottom:1px solid rgba(0,0,0,0.08);">
-                  <td style="padding:7px 4px;">Acqua <span style="font-size:11px; color:#999;">(idro ${prefermentiSplit.prefermento.hydration}%)</span></td>
-                  <td style="padding:7px 4px; text-align:right; font-size:17px; font-weight:700;">${prefermentiSplit.prefermento.water}<span style="font-size:12px; font-weight:400; color:#888;">g</span></td>
+                  <td style="padding:4px 4px;">Acqua <span style="font-size:10px; color:#999;">(idro ${prefermentiSplit.prefermento.hydration}%)</span></td>
+                  <td style="padding:4px 4px; text-align:right; font-size:14px; font-weight:700;">${prefermentiSplit.prefermento.water}<span style="font-size:11px; font-weight:400; color:#888;">g</span></td>
                 </tr>
                 <tr>
-                  <td style="padding:7px 4px; font-weight:700; color:#ea580c;">${yeastTypeLabel(yeastType)}</td>
-                  <td style="padding:7px 4px; text-align:right; font-size:17px; font-weight:700; color:#ea580c;">${prefermentiSplit.prefermento.yeast}<span style="font-size:12px; font-weight:400; color:#888;">g</span></td>
+                  <td style="padding:4px 4px; font-weight:700; color:#ea580c;">${yeastTypeLabel(yeastType)}</td>
+                  <td style="padding:4px 4px; text-align:right; font-size:14px; font-weight:700; color:#ea580c;">${prefermentiSplit.prefermento.yeast}<span style="font-size:11px; font-weight:400; color:#888;">g</span></td>
                 </tr>
                 <tr style="border-top:2px solid rgba(0,0,0,0.1);">
-                  <td style="padding:6px 4px; font-size:12px; color:#888;">Totale ${prefermentiSplit.prefermento.type}</td>
-                  <td style="padding:6px 4px; text-align:right; font-size:13px; font-weight:700; color:#555;">${prefermentiSplit.prefermento.totalWeight}<span style="font-size:11px; color:#888;">g</span></td>
+                  <td style="padding:4px 4px; font-size:11px; color:#888;">Totale ${prefermentiSplit.prefermento.type}</td>
+                  <td style="padding:4px 4px; text-align:right; font-size:12px; font-weight:700; color:#555;">${prefermentiSplit.prefermento.totalWeight}<span style="font-size:10px; color:#888;">g</span></td>
                 </tr>
               </table>
             </div>
@@ -125,29 +125,29 @@ export function IngredientsCard() {
               <p style="font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 8px 0;">Impasto finale</p>
               <table style="width:100%; border-collapse:collapse; font-size:14px;">
                 <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:7px 4px; font-weight:600;">Farina da aggiungere</td>
-                  <td style="padding:7px 4px; text-align:right; font-size:17px; font-weight:700;">${prefermentiSplit.mainDough.flourToAdd}<span style="font-size:12px; font-weight:400; color:#888;">g</span></td>
+                  <td style="padding:4px 4px; font-weight:600;">Farina da aggiungere</td>
+                  <td style="padding:4px 4px; text-align:right; font-size:17px; font-weight:700;">${prefermentiSplit.mainDough.flourToAdd}<span style="font-size:12px; font-weight:400; color:#888;">g</span></td>
                 </tr>
                 <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:7px 4px;">Acqua da aggiungere</td>
-                  <td style="padding:7px 4px; text-align:right; font-size:17px; font-weight:700;">${prefermentiSplit.mainDough.waterToAdd}<span style="font-size:12px; font-weight:400; color:#888;">g</span></td>
+                  <td style="padding:4px 4px;">Acqua da aggiungere</td>
+                  <td style="padding:4px 4px; text-align:right; font-size:17px; font-weight:700;">${prefermentiSplit.mainDough.waterToAdd}<span style="font-size:12px; font-weight:400; color:#888;">g</span></td>
                 </tr>
                 <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:7px 4px;">Sale</td>
-                  <td style="padding:7px 4px; text-align:right; font-size:17px; font-weight:700;">${prefermentiSplit.mainDough.salt}<span style="font-size:12px; font-weight:400; color:#888;">g</span></td>
+                  <td style="padding:4px 4px;">Sale</td>
+                  <td style="padding:4px 4px; text-align:right; font-size:17px; font-weight:700;">${prefermentiSplit.mainDough.salt}<span style="font-size:12px; font-weight:400; color:#888;">g</span></td>
                 </tr>
                 ${prefermentiSplit.mainDough.oil > 0 ? `
                 <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:7px 4px;">Olio EVO</td>
-                  <td style="padding:7px 4px; text-align:right; font-size:17px; font-weight:700;">${prefermentiSplit.mainDough.oil}<span style="font-size:12px; font-weight:400; color:#888;">g</span></td>
+                  <td style="padding:4px 4px;">Olio EVO</td>
+                  <td style="padding:4px 4px; text-align:right; font-size:17px; font-weight:700;">${prefermentiSplit.mainDough.oil}<span style="font-size:12px; font-weight:400; color:#888;">g</span></td>
                 </tr>` : ''}
                 <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:7px 4px; color:#888;">+ ${prefermentiSplit.prefermento.type === 'biga' ? 'Biga' : 'Poolish'} (${prefermentiSplit.mainDough.prefermentiToAdd}g)</td>
+                  <td style="padding:4px 4px; color:#888;">+ ${prefermentiSplit.prefermento.type === 'biga' ? 'Biga' : 'Poolish'} (${prefermentiSplit.mainDough.prefermentiToAdd}g)</td>
                   <td></td>
                 </tr>
                 <tr style="background:#f9fafb;">
-                  <td style="padding:7px 4px; font-size:12px; color:#888; border-top:2px solid #e5e7eb;">Impasto totale</td>
-                  <td style="padding:7px 4px; text-align:right; font-size:14px; font-weight:600; color:#555; border-top:2px solid #e5e7eb;">${prefermentiSplit.totalFinalDough}<span style="font-size:12px; font-weight:400; color:#888;">g</span></td>
+                  <td style="padding:4px 4px; font-size:12px; color:#888; border-top:2px solid #e5e7eb;">Impasto totale</td>
+                  <td style="padding:4px 4px; text-align:right; font-size:14px; font-weight:600; color:#555; border-top:2px solid #e5e7eb;">${prefermentiSplit.totalFinalDough}<span style="font-size:12px; font-weight:400; color:#888;">g</span></td>
                 </tr>
               </table>
             </div>
@@ -155,8 +155,8 @@ export function IngredientsCard() {
             <table style="width:100%; border-collapse:collapse; font-size:15px;">
               ${rows.map(r => `
                 <tr style="border-bottom:1px solid #f0f0f0;">
-                  <td style="padding:9px 4px; ${r.accent ? 'font-weight:700; color:#ea580c;' : r.bold ? 'font-weight:600;' : ''}">${r.label}</td>
-                  <td style="padding:9px 4px; text-align:right; font-size:18px; font-weight:700; ${r.accent ? 'color:#ea580c;' : 'color:#111;'}">${r.value}<span style="font-size:13px; font-weight:400; color:#888;">${r.unit}</span></td>
+                  <td style="padding:4px 4px; ${r.accent ? 'font-weight:700; color:#ea580c;' : r.bold ? 'font-weight:600;' : ''}">${r.label}</td>
+                  <td style="padding:4px 4px; text-align:right; font-size:14px; font-weight:700; ${r.accent ? 'color:#ea580c;' : 'color:#111;'}">${r.value}<span style="font-size:11px; font-weight:400; color:#888;">${r.unit}</span></td>
                 </tr>
               `).join('')}
               <tr style="background:#f9fafb;">
@@ -171,7 +171,7 @@ export function IngredientsCard() {
         </div>
 
         <!-- FASI DI FERMENTAZIONE -->
-        <div style="margin-bottom:20px;">
+        <div style="margin-bottom:12px;">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
             <div style="width:4px; height:20px; background:#0ea5e9; border-radius:2px;"></div>
             <h2 style="font-size:14px; font-weight:700; color:#0ea5e9; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Fasi di fermentazione</h2>
@@ -303,6 +303,9 @@ export function IngredientsCard() {
                 <span className="text-sm">
                   + {prefermentiSplit.prefermento.type === 'biga' ? 'Biga' : 'Poolish'} ({prefermentiSplit.mainDough.prefermentiToAdd}g)
                 </span>
+              </div>
+              <div className="text-xs text-neutral-400 dark:text-neutral-500 pt-1 italic">
+                Nessun lievito aggiuntivo — il lievito nella {prefermentiSplit.prefermento.type === 'biga' ? 'biga' : 'poolish'} continua a lavorare
               </div>
             </div>
             <div className="mt-2 pt-2 border-t border-neutral-200 dark:border-neutral-700 flex justify-between text-xs font-semibold text-neutral-600 dark:text-neutral-400">

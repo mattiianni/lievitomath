@@ -11,36 +11,39 @@ import { FermentationSummary } from './components/outputs/FermentationSummary';
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 font-sans">
+    <div className="min-h-screen bg-stone-100 dark:bg-neutral-950 font-sans">
       <Header />
 
       {/* Print view — visibile solo in stampa */}
       <div id="print-view" className="print-only px-8 py-6" />
 
-      <main className="max-w-5xl mx-auto px-4 py-5 print-hidden">
+      <main className="max-w-3xl mx-auto px-4 py-5 print-hidden">
         <div className="mb-5">
           <ModeTab />
         </div>
 
         {/*
-          Mobile: ordine 1→8 (semaforo subito dopo slider)
-          Desktop 2 col: col-start + row-start espliciti
+          Layout desktop (lg):
+            Col 1 (row-span-2): BaseInputs
+            Col 2 row 1: HydrationGauge
+            Col 2 row 2: YeastSelector
+          Poi full-width sequenziali:
+            FermentationPhases → IngredientsCard → WBlendCard → FlourActual → FermentationSummary
+
+          Mobile: tutto stack verticale nell'ordine naturale.
         */}
-        {/*
-          Mobile: ordine 1→8
-          Desktop 2 col:
-            Col 1 (inputs):  BaseInputs, YeastSelector, FermentationPhases, WBlendCard
-            Col 2 (outputs): HydrationGauge, FlourActual, IngredientsCard, FermentationSummary
-        */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:items-start">
-          <div className="order-1 lg:col-start-1 lg:row-start-1"><BaseInputs /></div>
-          <div className="order-2 lg:col-start-2 lg:row-start-1"><HydrationGauge /></div>
-          <div className="order-3 lg:col-start-1 lg:row-start-2"><YeastSelector /></div>
-          <div className="order-4 lg:col-start-1 lg:row-start-3"><FermentationPhases /></div>
-          <div className="order-5 lg:col-start-1 lg:row-start-4"><WBlendCard /></div>
-          <div className="order-6 lg:col-start-2 lg:row-start-2"><FlourActual /></div>
-          <div className="order-7 lg:col-start-2 lg:row-start-3"><IngredientsCard /></div>
-          <div className="order-8 lg:col-start-2 lg:row-start-4"><FermentationSummary /></div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start mb-5">
+          <div className="lg:row-span-2"><BaseInputs /></div>
+          <HydrationGauge />
+          <YeastSelector />
+        </div>
+
+        <div className="flex flex-col gap-5">
+          <FermentationPhases />
+          <IngredientsCard />
+          <WBlendCard />
+          <FlourActual />
+          <FermentationSummary />
         </div>
 
         <footer className="mt-10 text-center text-xs text-neutral-400 dark:text-neutral-600 pb-6">

@@ -143,19 +143,28 @@ export const useDoughStore = create<DoughStore>()(
     }),
     {
       name: 'lievitomath-state',
-      version: 2,
+      version: 3,
       migrate: (persisted: unknown, version: number) => {
+        let s = persisted as { state: DoughState };
         if (version < 2) {
-          const old = persisted as { state: DoughState };
           // Aggiunge biga/poolish in testa alle phases se non già presenti
-          const existingIds = new Set(old.state.phases.map(p => p.id));
+          const existingIds = new Set(s.state.phases.map(p => p.id));
           const newPhases = [
             ...PREFERMENTO_PHASES.filter(p => !existingIds.has(p.id)).map(p => ({ ...p })),
-            ...old.state.phases,
+            ...s.state.phases,
           ];
-          return { state: { ...old.state, phases: newPhases } };
+          s = { state: { ...s.state, phases: newPhases } };
         }
-        return persisted;
+        if (version < 3) {
+          // Aggiunge hydrationPercent a biga/poolish se mancante
+          const phases = s.state.phases.map(p => {
+            if (p.id === 'biga'    && p.hydrationPercent == null) return { ...p, hydrationPercent: 44 };
+            if (p.id === 'poolish' && p.hydrationPercent == null) return { ...p, hydrationPercent: 100 };
+            return p;
+          });
+          s = { state: { ...s.state, phases } };
+        }
+        return s;
       },
       partialize: (s) => ({ state: s.state }),
     }

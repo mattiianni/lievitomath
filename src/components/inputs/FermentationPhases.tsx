@@ -5,11 +5,11 @@ import { SectionCard } from '../ui/SectionCard';
 const PHASE_COLORS: Record<string, string> = {
   biga:     'bg-orange-100 dark:bg-orange-900/30 text-orange-700  dark:text-orange-300',
   poolish:  'bg-purple-100 dark:bg-purple-900/30 text-purple-700  dark:text-purple-300',
-  puntata:  'bg-amber-100  dark:bg-amber-900/30  text-amber-700   dark:text-amber-300',
+  puntata:  'bg-teal-100   dark:bg-teal-900/30   text-teal-700    dark:text-teal-300',
   autolisi: 'bg-sky-100    dark:bg-sky-900/30    text-sky-700     dark:text-sky-300',
   frigo:    'bg-blue-100   dark:bg-blue-900/30   text-blue-700    dark:text-blue-300',
-  appretto: 'bg-green-100  dark:bg-green-900/30  text-green-700   dark:text-green-300',
-  riposo:   'bg-green-100  dark:bg-green-900/30  text-green-700   dark:text-green-300',
+  appretto: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
+  riposo:   'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
 };
 
 const PHASE_ICONS: Record<string, string> = {
@@ -105,21 +105,38 @@ export function FermentationPhases() {
                         </div>
                       </div>
                       {isPrefermento && (
-                        <div>
-                          <label className="text-xs font-medium opacity-80 mb-1 block">% farina</label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="range"
-                              min={20}
-                              max={phase.id === 'poolish' ? 40 : 70}
-                              step={5}
-                              value={phase.flourPercent ?? (phase.id === 'poolish' ? 30 : 40)}
-                              onChange={e => updatePhase(phase.id, { flourPercent: parseInt(e.target.value) })}
-                              className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
-                            />
-                            <span className="text-sm font-bold w-10 text-right">{phase.flourPercent ?? (phase.id === 'poolish' ? 30 : 40)}%</span>
+                        <>
+                          <div>
+                            <label className="text-xs font-medium opacity-80 mb-1 block">% farina nel blend</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="range"
+                                min={20}
+                                max={phase.id === 'poolish' ? 40 : 70}
+                                step={5}
+                                value={phase.flourPercent ?? (phase.id === 'poolish' ? 30 : 40)}
+                                onChange={e => updatePhase(phase.id, { flourPercent: parseInt(e.target.value) })}
+                                className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
+                              />
+                              <span className="text-sm font-bold w-10 text-right">{phase.flourPercent ?? (phase.id === 'poolish' ? 30 : 40)}%</span>
+                            </div>
                           </div>
-                        </div>
+                          <div>
+                            <label className="text-xs font-medium opacity-80 mb-1 block">Idratazione</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="range"
+                                min={phase.id === 'poolish' ? 80 : 40}
+                                max={phase.id === 'poolish' ? 100 : 60}
+                                step={phase.id === 'poolish' ? 5 : 2}
+                                value={phase.hydrationPercent ?? (phase.id === 'poolish' ? 100 : 44)}
+                                onChange={e => updatePhase(phase.id, { hydrationPercent: parseInt(e.target.value) })}
+                                className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
+                              />
+                              <span className="text-sm font-bold w-10 text-right">{phase.hydrationPercent ?? (phase.id === 'poolish' ? 100 : 44)}%</span>
+                            </div>
+                          </div>
+                        </>
                       )}
                     </div>
 

@@ -40,13 +40,13 @@ export function yeastPercentFromFermentation(
   const YEAST_FACTORS: Record<YeastType, number> = {
     fresh: 1.0,
     instant_dry: 0.33,  // IDY è ~3× più potente del fresco
-    sourdough: 20.0,    // lievito madre: percentuali molto più alte (10-30%)
+    sourdough: 60.0,    // lievito madre: tipicamente 10-25% sulla farina
   };
 
   const CLAMP: Record<YeastType, [number, number]> = {
     fresh: [0.04, 3.0],
     instant_dry: [0.015, 1.0],
-    sourdough: [8.0, 35.0],
+    sourdough: [5.0, 50.0],  // min 5% anche per lunghe maturazioni
   };
 
   const BASE_DOSE = 1.0;

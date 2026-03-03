@@ -32,7 +32,7 @@ export function calculatePrefermentiSplit(
   total: { flour: number; water: number; salt: number; oil: number; yeast: number }
 ): PrefermentiSplit {
   const pct = phase.flourPercent ?? 40;
-  const hydration = phase.id === 'biga' ? 44 : 100;
+  const hydration = phase.hydrationPercent ?? (phase.id === 'biga' ? 44 : 100);
 
   const prefFlourRaw = total.flour * (pct / 100);
   const prefWaterRaw = prefFlourRaw * (hydration / 100);
