@@ -17,14 +17,21 @@ export function q10Factor(tempC: number): number {
  *
  * Coefficienti di fase k:
  *   puntata (bulk):  k = 1.0
- *   frigo:           k = 0.2
+ *   frigo LdB:       k = 0.2
+ *   frigo LM:        k = 1.5 (i batteri lattici continuano ad acidificare → maturazione rapida)
  *   appretto:        k = 0.6
+ *
+ * Effetto pratico sul lievito madre:
+ *   senza frigo (2h+4h): F≈4.1 → ~15% LM
+ *   16h frigo:           F≈10  → ~6%  LM  (differenza reale ✓)
  */
-export function cumulativeFermentation(phases: FermentationPhase[]): number {
+export function cumulativeFermentation(phases: FermentationPhase[], yeastType?: YeastType): number {
   return phases
     .filter(p => p.active && p.hours > 0)
     .reduce((sum, phase) => {
-      return sum + phase.hours * q10Factor(phase.temperatureCelsius) * phase.k;
+      // Lievito madre in frigo: acidificazione LAB continua → k molto più alto del lievito di birra
+      const effectiveK = (yeastType === 'sourdough' && phase.k === 0.2) ? 1.5 : phase.k;
+      return sum + phase.hours * q10Factor(phase.temperatureCelsius) * effectiveK;
     }, 0);
 }
 

@@ -21,7 +21,8 @@ export function useCalculation(): CalculationResult | null {
     );
 
     // cumulativeFermentation include biga/poolish (k=1.0) se attivi — usato per WBlend
-    const cumulativeF = cumulativeFermentation(state.phases);
+    // Passa yeastType per applicare k_frigo corretto (sourdough ≠ lievito di birra)
+    const cumulativeF = cumulativeFermentation(state.phases, state.yeastType);
 
     // Calibrazione Giorilli: 1 kg farina + 440g acqua + 10g lievito = 1% LDB su farina biga
     // Condizioni di riferimento: 18h@18°C → F_REF = 18 × q10(18) ≈ 11.88

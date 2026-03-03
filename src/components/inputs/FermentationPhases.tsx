@@ -4,27 +4,39 @@ import { useCalculation } from '../../hooks/useCalculation';
 import { q10Factor } from '../../engine/fermentation';
 import { SectionCard } from '../ui/SectionCard';
 
+// Palette muted/desaturata (fornita utente — "palette scura")
+// Swatch (sx→dx): #8B9EC4 #9E9278 #D9C27A #6B7EA4 #6A5535 #252B3C
+// Assegnazione semantica: biga=dorato, poolish=ardesia, puntata=siena, autolisi=taupe, frigo=periwinkle, appretto=navy
+// Light mode: tinte chiarissime dello stesso hue. Dark mode: colore pieno dalla palette.
 const PHASE_COLORS: Record<string, string> = {
-  biga:     'bg-orange-100 dark:bg-orange-900/30 text-orange-700  dark:text-orange-300',
-  poolish:  'bg-purple-100 dark:bg-purple-900/30 text-purple-700  dark:text-purple-300',
-  puntata:  'bg-teal-100   dark:bg-teal-900/30   text-teal-700    dark:text-teal-300',
-  autolisi: 'bg-sky-100    dark:bg-sky-900/30    text-sky-700     dark:text-sky-300',
-  frigo:    'bg-blue-100   dark:bg-blue-900/30   text-blue-700    dark:text-blue-300',
-  appretto: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
-  riposo:   'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
+  biga:     'bg-[#fdf5dc] dark:bg-[#D9C27A] text-[#4a3010] dark:text-[#3a2800]',
+  poolish:  'bg-[#e8edf8] dark:bg-[#6B7EA4] text-[#1a2840] dark:text-[#dce8f8]',
+  puntata:  'bg-[#f5ece0] dark:bg-[#6A5535] text-[#3a2010] dark:text-[#f0d8b0]',
+  autolisi: 'bg-[#f5f0e8] dark:bg-[#9E9278] text-[#3a3020] dark:text-[#2a2010]',
+  frigo:    'bg-[#edf2fa] dark:bg-[#8B9EC4] text-[#1a2840] dark:text-[#0a1428]',
+  appretto: 'bg-[#eaecf2] dark:bg-[#252B3C] text-[#1a2030] dark:text-[#a0b0c8]',
 };
 
 const PHASE_ICONS: Record<string, string> = {
   biga:     '🍞',
   poolish:  '💧',
   autolisi: '⏸',
+  frigo:    '❄️',
 };
 
 function phaseColor(id: string) {
-  return PHASE_COLORS[id] ?? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400';
+  return PHASE_COLORS[id] ?? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300';
 }
 
 const PREFERMENTI = ['biga', 'poolish'];
+
+function formatHours(h: number) {
+  const hh = Math.floor(h);
+  const mm = Math.round((h - hh) * 60);
+  if (hh > 0 && mm > 0) return `${hh}h ${mm}min`;
+  if (hh > 0) return `${hh}h`;
+  return `${mm}min`;
+}
 
 export function FermentationPhases() {
   const phases = useDoughStore(s => s.state.phases);
@@ -35,19 +47,9 @@ export function FermentationPhases() {
   const setStaglioImmediato = useDoughStore(s => s.setStaglioImmediato);
   const result = useCalculation();
 
-  // AUTO switch state (biga/poolish): calcola ore reali a T ambiente
-  const [autoAmbientTemp, setAutoAmbientTemp] = useState<Record<string, number>>({
-    biga: 20, poolish: 20,
-  });
-
-  // Per teglia con staglioImmediato: frigo disattivato, appretto label → "Riposo fuori frigo"
-  const effectivePhases = (mode === 'teglia' && staglioImmediato)
-    ? phases.map(p => {
-        if (p.id === 'frigo')    return { ...p, active: false };
-        if (p.id === 'appretto') return { ...p, label: 'Riposo fuori frigo' };
-        return p;
-      })
-    : phases;
+  // AUTO switch (per biga/poolish): toggle locale, non persistito
+  const [autoEnabled, setAutoEnabled] = useState<Record<string, boolean>>({});
+  const [autoAmbientTemp, setAutoAmbientTemp] = useState<Record<string, number>>({ biga: 20, poolish: 20 });
 
   return (
     <SectionCard title="Fasi di fermentazione">
@@ -60,13 +62,13 @@ export function FermentationPhases() {
               <span className="text-sm font-semibold">Staglio immediato</span>
               <span className="block text-xs text-neutral-500 dark:text-neutral-400">
                 {staglioImmediato
-                  ? 'Staglio subito dopo puntata — no frigo, riposo diretto'
-                  : 'Staglio dopo frigo — puntata → frigo → appretto (standard)'}
+                  ? 'Staglio prima della puntata (porzioni separate fin dall\'inizio)'
+                  : 'Staglio dopo puntata — massa unica fino allo staglio (standard)'}
               </span>
             </div>
             <button
               onClick={() => setStaglioImmediato(!staglioImmediato)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-3 ${
                 staglioImmediato ? 'bg-teal-500' : 'bg-neutral-300 dark:bg-neutral-600'
               }`}
             >
@@ -77,37 +79,43 @@ export function FermentationPhases() {
           </div>
         )}
 
-        {effectivePhases.map((phase, idx) => {
+        {phases.map((phase, idx) => {
           const isPrefermento = PREFERMENTI.includes(phase.id);
-          // Per teglia con staglioImmediato, il frigo è disattivato e non modificabile
-          const isLockedByStaglio = mode === 'teglia' && staglioImmediato && phase.id === 'frigo';
+          const isAutoOn = autoEnabled[phase.id] ?? false;
+          const tAmb = autoAmbientTemp[phase.id] ?? 20;
 
           return (
             <div key={phase.id}>
-              {/* Freccia tra fasi (non prima della prima) */}
               {idx > 0 && (
                 <div className="flex justify-center my-1 text-neutral-300 dark:text-neutral-600 text-xs">↓</div>
               )}
 
               <div className={`rounded-xl p-3 border transition-all ${
                 phase.active
-                  ? 'border-transparent ' + phaseColor(phase.id)
-                  : 'border-neutral-200 dark:border-neutral-700 opacity-50'
+                  ? 'border-current/15 ' + phaseColor(phase.id)
+                  : 'border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/30 opacity-50'
               }`}>
+                {/* Header fase */}
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {PHASE_ICONS[phase.id] && (
                       <span className="text-sm">{PHASE_ICONS[phase.id]}</span>
                     )}
                     <span className="font-semibold text-sm">{phase.label}</span>
-                    {phase.k === 0.2 && <span className="text-xs opacity-70">❄️ frigo</span>}
-                    {phase.k === 0.0 && !PHASE_ICONS[phase.id] && <span className="text-xs opacity-70">⏸ riposo</span>}
-                    {isLockedByStaglio && <span className="text-xs opacity-50 italic">(disattivato)</span>}
+                    {phase.k === 0.0 && !PHASE_ICONS[phase.id] && (
+                      <span className="text-xs opacity-60">⏸ riposo</span>
+                    )}
+                    {/* Badge staglio immediato sulla puntata */}
+                    {mode === 'teglia' && staglioImmediato && phase.id === 'puntata' && (
+                      <span className="text-xs font-semibold bg-teal-500 text-white rounded-full px-2 py-0.5">
+                        staglio prima
+                      </span>
+                    )}
                   </div>
-                  {!phase.locked && !isLockedByStaglio && (
+                  {!phase.locked && (
                     <button
                       onClick={() => togglePhase(phase.id)}
-                      className={`text-xs px-2 py-0.5 rounded-full border font-medium transition-colors ${
+                      className={`text-xs px-2 py-0.5 rounded-full border font-medium transition-colors flex-shrink-0 ${
                         phase.active
                           ? 'border-current opacity-70 hover:opacity-100'
                           : 'border-neutral-400 text-neutral-400 hover:border-neutral-600'
@@ -119,10 +127,14 @@ export function FermentationPhases() {
                 </div>
 
                 {phase.active && (
-                  <>
-                    <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-3">
+
+                    {/* Slider Ore — nascosto in AUTO mode per prefermenti */}
+                    {(!isPrefermento || !isAutoOn) && (
                       <div>
-                        <label className="text-xs font-medium opacity-80 mb-1 block">Ore</label>
+                        <label className="text-xs font-medium opacity-80 mb-1 block">
+                          {isPrefermento ? 'Ore di riferimento' : 'Ore'}
+                        </label>
                         <div className="flex items-center gap-2">
                           <input
                             type="range"
@@ -136,87 +148,117 @@ export function FermentationPhases() {
                           <span className="text-sm font-bold w-10 text-right">{phase.hours}h</span>
                         </div>
                       </div>
-                      <div>
-                        <label className="text-xs font-medium opacity-80 mb-1 block">Temperatura ricetta</label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="range"
-                            min={phase.id === 'frigo' ? 2 : 14}
-                            max={phase.id === 'frigo' ? 10 : 32}
-                            step={1}
-                            value={phase.temperatureCelsius}
-                            onChange={e => updatePhase(phase.id, { temperatureCelsius: parseFloat(e.target.value) })}
-                            className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
-                          />
-                          <span className="text-sm font-bold w-10 text-right">{phase.temperatureCelsius}°C</span>
-                        </div>
-                      </div>
-                      {isPrefermento && (
-                        <>
-                          <div>
-                            <label className="text-xs font-medium opacity-80 mb-1 block">% farina nel blend</label>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="range"
-                                min={20}
-                                max={phase.id === 'poolish' ? 40 : 70}
-                                step={5}
-                                value={phase.flourPercent ?? (phase.id === 'poolish' ? 30 : 40)}
-                                onChange={e => updatePhase(phase.id, { flourPercent: parseInt(e.target.value) })}
-                                className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
-                              />
-                              <span className="text-sm font-bold w-10 text-right">{phase.flourPercent ?? (phase.id === 'poolish' ? 30 : 40)}%</span>
-                            </div>
-                          </div>
-                          <div>
-                            <label className="text-xs font-medium opacity-80 mb-1 block">Idratazione</label>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="range"
-                                min={phase.id === 'poolish' ? 80 : 40}
-                                max={phase.id === 'poolish' ? 100 : 60}
-                                step={phase.id === 'poolish' ? 5 : 2}
-                                value={phase.hydrationPercent ?? (phase.id === 'poolish' ? 100 : 44)}
-                                onChange={e => updatePhase(phase.id, { hydrationPercent: parseInt(e.target.value) })}
-                                className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
-                              />
-                              <span className="text-sm font-bold w-10 text-right">{phase.hydrationPercent ?? (phase.id === 'poolish' ? 100 : 44)}%</span>
-                            </div>
-                          </div>
+                    )}
 
-                          {/* AUTO: conversione ore a temperatura ambiente */}
-                          <div className="mt-1 rounded-lg bg-current/5 border border-current/10 px-3 py-2">
-                            <div className="flex items-center gap-1.5 mb-2">
-                              <span className="text-xs font-bold opacity-80">⏱ Auto — T ambiente</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="range"
-                                min={14} max={30} step={1}
-                                value={autoAmbientTemp[phase.id] ?? 20}
-                                onChange={e => setAutoAmbientTemp(prev => ({ ...prev, [phase.id]: parseInt(e.target.value) }))}
-                                className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
-                              />
-                              <span className="text-sm font-bold w-10 text-right">{autoAmbientTemp[phase.id] ?? 20}°C</span>
-                            </div>
-                            <div className="mt-1.5 text-xs opacity-75">
-                              {(() => {
-                                const tAmb = autoAmbientTemp[phase.id] ?? 20;
-                                const fTarget = phase.hours * q10Factor(phase.temperatureCelsius) * phase.k;
-                                const hoursReal = fTarget / q10Factor(tAmb);
-                                const h = Math.floor(hoursReal);
-                                const m = Math.round((hoursReal - h) * 60);
-                                return `A ${tAmb}°C → circa ${h > 0 ? h + 'h' : ''}${m > 0 ? ' ' + m + 'min' : ''} reali`;
-                              })()}
-                            </div>
-                          </div>
-                        </>
-                      )}
+                    {/* Slider Temperatura */}
+                    <div>
+                      <label className="text-xs font-medium opacity-80 mb-1 block">
+                        {isPrefermento ? 'Temperatura ricetta' : 'Temperatura'}
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="range"
+                          min={phase.id === 'frigo' ? 2 : 14}
+                          max={phase.id === 'frigo' ? 10 : 32}
+                          step={1}
+                          value={phase.temperatureCelsius}
+                          onChange={e => updatePhase(phase.id, { temperatureCelsius: parseFloat(e.target.value) })}
+                          className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
+                        />
+                        <span className="text-sm font-bold w-10 text-right">{phase.temperatureCelsius}°C</span>
+                      </div>
                     </div>
+
+                    {/* Slider extra — solo biga/poolish */}
+                    {isPrefermento && (
+                      <>
+                        <div>
+                          <label className="text-xs font-medium opacity-80 mb-1 block">% farina nel blend</label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="range"
+                              min={20}
+                              max={phase.id === 'poolish' ? 40 : 70}
+                              step={5}
+                              value={phase.flourPercent ?? (phase.id === 'poolish' ? 30 : 40)}
+                              onChange={e => updatePhase(phase.id, { flourPercent: parseInt(e.target.value) })}
+                              className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
+                            />
+                            <span className="text-sm font-bold w-10 text-right">
+                              {phase.flourPercent ?? (phase.id === 'poolish' ? 30 : 40)}%
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-medium opacity-80 mb-1 block">Idratazione</label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="range"
+                              min={phase.id === 'poolish' ? 80 : 40}
+                              max={phase.id === 'poolish' ? 100 : 60}
+                              step={phase.id === 'poolish' ? 5 : 2}
+                              value={phase.hydrationPercent ?? (phase.id === 'poolish' ? 100 : 44)}
+                              onChange={e => updatePhase(phase.id, { hydrationPercent: parseInt(e.target.value) })}
+                              className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
+                            />
+                            <span className="text-sm font-bold w-10 text-right">
+                              {phase.hydrationPercent ?? (phase.id === 'poolish' ? 100 : 44)}%
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* ── Toggle AUTO ── */}
+                        <div className="rounded-lg border border-current/20 bg-current/5 overflow-hidden">
+                          {/* Pulsante toggle */}
+                          <button
+                            onClick={() => setAutoEnabled(prev => ({ ...prev, [phase.id]: !isAutoOn }))}
+                            className="w-full flex items-center justify-between px-3 py-2 hover:bg-current/5 transition-colors"
+                          >
+                            <span className="text-xs font-bold opacity-80">⏱ Calcola tempo reale</span>
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+                              isAutoOn
+                                ? 'border-current bg-current/20'
+                                : 'border-current/30 opacity-50'
+                            }`}>
+                              {isAutoOn ? 'AUTO ON' : 'AUTO OFF'}
+                            </span>
+                          </button>
+
+                          {/* Contenuto AUTO — visibile solo se ON */}
+                          {isAutoOn && (
+                            <div className="px-3 pb-3 pt-1 border-t border-current/15">
+                              <div className="text-xs opacity-60 mb-2">
+                                Riferimento: {phase.hours}h @{phase.temperatureCelsius}°C
+                                {' '}→ F={( phase.hours * q10Factor(phase.temperatureCelsius) * phase.k).toFixed(2)}
+                              </div>
+                              <label className="text-xs font-medium opacity-80 mb-1 block">T ambiente</label>
+                              <div className="flex items-center gap-2 mb-2">
+                                <input
+                                  type="range"
+                                  min={14} max={30} step={1}
+                                  value={tAmb}
+                                  onChange={e => setAutoAmbientTemp(prev => ({ ...prev, [phase.id]: parseInt(e.target.value) }))}
+                                  className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
+                                />
+                                <span className="text-sm font-bold w-10 text-right">{tAmb}°C</span>
+                              </div>
+                              <div className="text-sm font-bold">
+                                {(() => {
+                                  const fTarget = phase.hours * q10Factor(phase.temperatureCelsius) * phase.k;
+                                  const hoursReal = fTarget / q10Factor(tAmb);
+                                  return `→ ${formatHours(hoursReal)} a ${tAmb}°C`;
+                                })()}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
 
                     {/* Preview grammi biga/poolish */}
                     {isPrefermento && result?.prefermentiSplit && (
-                      <div className="mt-2 pt-2 border-t border-current/20 text-xs opacity-80">
+                      <div className="pt-2 border-t border-current/15 text-xs opacity-80">
                         {phase.id === 'biga' ? '🍞' : '💧'}{' '}
                         <strong>{result.prefermentiSplit.prefermento.flour}g</strong> farina +{' '}
                         <strong>{result.prefermentiSplit.prefermento.water}g</strong> acqua
@@ -224,7 +266,7 @@ export function FermentationPhases() {
                         {' '}— {phase.hours}h prima
                       </div>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
             </div>

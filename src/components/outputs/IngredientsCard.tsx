@@ -53,13 +53,12 @@ export function IngredientsCard() {
     const phases = state.phases.filter(p => p.active && p.hours > 0);
 
     const phaseColors: Record<string, string> = {
-      biga:     '#f97316',
-      poolish:  '#a855f7',
-      autolisi: '#6366f1',
-      puntata:  '#ea580c',
-      frigo:    '#0ea5e9',
-      appretto: '#16a34a',
-      riposo:   '#16a34a',
+      biga:     '#c9a840',
+      poolish:  '#6B7EA4',
+      autolisi: '#9E9278',
+      puntata:  '#8B5E35',
+      frigo:    '#4A6A9C',
+      appretto: '#252B3C',
     };
 
     function phaseHoursLabel(hours: number): string {
