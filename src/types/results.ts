@@ -22,6 +22,8 @@ export interface WBlendResult {
   suggestion: string;
 }
 
+import type { PrefermentiSplit } from '../engine/dough';
+
 export interface CalculationResult {
   ingredients: IngredientWeights;
   yeastPercent: number;
@@ -30,4 +32,5 @@ export interface CalculationResult {
   totalDoughWeight: number;
   flourWeight: number;
   cumulativeF: number; // utile per debug/display
+  prefermentiSplit: PrefermentiSplit | null;
 }

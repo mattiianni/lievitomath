@@ -15,21 +15,21 @@ interface ModeConfig {
 const MODE_CONFIG: Record<DoughMode, ModeConfig> = {
   napoletana: {
     pieces: 'Numero di palline',
-    weight: { label: 'Peso per pallina', min: 230, max: 320, hint: '260-270g tipico' },
+    weight: { label: 'Peso', min: 230, max: 320, hint: '260-270g tipico' },
     hydration: { min: 55, max: 80, step: 0.5, typical: '65% tipico' },
     salt: { min: 1.5, max: 4, typical: '2.8% tipico' },
     oil:  { min: 0, max: 5, typical: '0% tipico' },
   },
   teglia: {
     pieces: 'Numero di panetti',
-    weight: { label: 'Peso per panetto', min: 480, max: 750, hint: '660g tipico' },
+    weight: { label: 'Peso', min: 480, max: 750, hint: '660g tipico' },
     hydration: { min: 65, max: 90, step: 0.5, typical: '78% tipico' },
     salt: { min: 1.5, max: 3.5, typical: '2.5% tipico' },
     oil:  { min: 0, max: 8, typical: '3% tipico' },
   },
   pane: {
     pieces: 'Numero di pagnotte',
-    weight: { label: 'Peso per pagnotta', min: 500, max: 1200, hint: '800g tipico' },
+    weight: { label: 'Peso', min: 500, max: 1200, hint: '800g tipico' },
     hydration: { min: 55, max: 85, step: 1, typical: '70% tipico' },
     salt: { min: 1, max: 3, typical: '2.2% tipico' },
     oil: null,

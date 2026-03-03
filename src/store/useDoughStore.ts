@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { DoughState, DoughMode, YeastType, Flour, FermentationPhase } from '../types/dough';
-import { getDefaultState } from '../constants/modes';
+import { getDefaultState, PREFERMENTO_PHASES } from '../constants/modes';
 
 interface DoughStore {
   state: DoughState;
@@ -55,14 +55,17 @@ export const useDoughStore = create<DoughStore>()(
         })),
 
       togglePhase: (id) =>
-        set(s => ({
-          state: {
-            ...s.state,
-            phases: s.state.phases.map(p =>
-              p.id === id && !p.locked ? { ...p, active: !p.active } : p
-            ),
-          },
-        })),
+        set(s => {
+          const PREFERMENTI = ['biga', 'poolish'];
+          const phases = s.state.phases.map(p => {
+            if (p.id === id && !p.locked) return { ...p, active: !p.active };
+            // mutua esclusione: attivare un prefermento disattiva l'altro
+            if (PREFERMENTI.includes(id) && PREFERMENTI.includes(p.id) && p.id !== id)
+              return { ...p, active: false };
+            return p;
+          });
+          return { state: { ...s.state, phases } };
+        }),
 
       addFlour: () =>
         set(s => {
@@ -140,7 +143,20 @@ export const useDoughStore = create<DoughStore>()(
     }),
     {
       name: 'lievitomath-state',
-      version: 1,
+      version: 2,
+      migrate: (persisted: unknown, version: number) => {
+        if (version < 2) {
+          const old = persisted as { state: DoughState };
+          // Aggiunge biga/poolish in testa alle phases se non già presenti
+          const existingIds = new Set(old.state.phases.map(p => p.id));
+          const newPhases = [
+            ...PREFERMENTO_PHASES.filter(p => !existingIds.has(p.id)).map(p => ({ ...p })),
+            ...old.state.phases,
+          ];
+          return { state: { ...old.state, phases: newPhases } };
+        }
+        return persisted;
+      },
       partialize: (s) => ({ state: s.state }),
     }
   )

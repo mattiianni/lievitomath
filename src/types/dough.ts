@@ -15,9 +15,10 @@ export interface FermentationPhase {
   label: string;
   hours: number;
   temperatureCelsius: number;
-  k: number;       // coefficiente fase: 1.0 puntata, 0.2 frigo, 0.6 appretto
-  active: boolean; // il frigo può essere disattivato
+  k: number;        // coefficiente fase: 1.0 puntata, 0.2 frigo, 0.6 appretto
+  active: boolean;  // il frigo può essere disattivato
   locked?: boolean; // fase non disattivabile (puntata base)
+  flourPercent?: number; // solo biga/poolish: % della farina totale nel prefermento
 }
 
 export interface DoughState {

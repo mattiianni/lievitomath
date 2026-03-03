@@ -14,26 +14,36 @@ export const HYDRATION_RANGES: Record<DoughMode, HydrationRange> = {
   pane:       { too_low: 58, low: 65, too_high_start: 75, too_high: 82 },
 };
 
+const PREFERMENTO_PHASES: FermentationPhase[] = [
+  { id: 'biga',    label: 'Biga',    hours: 18, temperatureCelsius: 18, k: 1.0, active: false, flourPercent: 40 },
+  { id: 'poolish', label: 'Poolish', hours: 12, temperatureCelsius: 20, k: 1.0, active: false, flourPercent: 30 },
+];
+
 const DEFAULT_PHASES: Record<DoughMode, FermentationPhase[]> = {
   napoletana: [
+    ...PREFERMENTO_PHASES,
     { id: 'autolisi', label: 'Autolisi (riposo)',  hours: 0.5, temperatureCelsius: 20, k: 0.0, active: false },
     { id: 'puntata',  label: 'Puntata',            hours: 2,   temperatureCelsius: 24, k: 1.0, active: true,  locked: true },
     { id: 'frigo',    label: 'Frigo',              hours: 16,  temperatureCelsius: 4,  k: 0.2, active: true },
     { id: 'appretto', label: 'Appretto',           hours: 4,   temperatureCelsius: 22, k: 0.6, active: true,  locked: true },
   ],
   teglia: [
+    ...PREFERMENTO_PHASES,
     { id: 'autolisi', label: 'Autolisi (riposo)',  hours: 0.5, temperatureCelsius: 20, k: 0.0, active: false },
     { id: 'puntata',  label: 'Puntata',            hours: 1,   temperatureCelsius: 24, k: 1.0, active: true, locked: true },
     { id: 'frigo',    label: 'Frigo',              hours: 24,  temperatureCelsius: 4,  k: 0.2, active: true },
     { id: 'riposo',   label: 'Riposo Fuori Frigo',  hours: 3,   temperatureCelsius: 22, k: 0.6, active: true, locked: true },
   ],
   pane: [
+    ...PREFERMENTO_PHASES,
     { id: 'autolisi', label: 'Autolisi (riposo)',  hours: 1,   temperatureCelsius: 20, k: 0.0, active: false },
     { id: 'puntata',  label: 'Bulk (puntata)',     hours: 4,   temperatureCelsius: 26, k: 1.0, active: true, locked: true },
     { id: 'frigo',    label: 'Frigo',              hours: 12,  temperatureCelsius: 4,  k: 0.2, active: true },
     { id: 'appretto', label: 'Appretto',           hours: 2,   temperatureCelsius: 24, k: 0.6, active: true, locked: true },
   ],
 };
+
+export { PREFERMENTO_PHASES };
 
 const DEFAULT_VALUES: Record<DoughMode, Partial<DoughState>> = {
   napoletana: { hydration: 65, salt: 2.8, oil: 0,   pieces: 4, weightPerPiece: 270 },

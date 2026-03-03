@@ -26,14 +26,20 @@ export default function App() {
           Mobile: ordine 1→8 (semaforo subito dopo slider)
           Desktop 2 col: col-start + row-start espliciti
         */}
+        {/*
+          Mobile: ordine 1→8
+          Desktop 2 col:
+            Col 1 (inputs):  BaseInputs, YeastSelector, FermentationPhases, WBlendCard
+            Col 2 (outputs): HydrationGauge, FlourActual, IngredientsCard, FermentationSummary
+        */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <div className="order-1 lg:col-start-1 lg:row-start-1"><BaseInputs /></div>
           <div className="order-2 lg:col-start-2 lg:row-start-1"><HydrationGauge /></div>
           <div className="order-3 lg:col-start-1 lg:row-start-2"><YeastSelector /></div>
-          <div className="order-4 lg:col-start-2 lg:row-start-2"><WBlendCard /></div>
-          <div className="order-5 lg:col-start-1 lg:row-start-3"><FermentationPhases /></div>
-          <div className="order-6 lg:col-start-2 lg:row-start-3"><IngredientsCard /></div>
-          <div className="order-7 lg:col-start-1 lg:row-start-4"><FlourActual /></div>
+          <div className="order-4 lg:col-start-1 lg:row-start-3"><FermentationPhases /></div>
+          <div className="order-5 lg:col-start-1 lg:row-start-4"><WBlendCard /></div>
+          <div className="order-6 lg:col-start-2 lg:row-start-2"><FlourActual /></div>
+          <div className="order-7 lg:col-start-2 lg:row-start-3"><IngredientsCard /></div>
           <div className="order-8 lg:col-start-2 lg:row-start-4"><FermentationSummary /></div>
         </div>
 
