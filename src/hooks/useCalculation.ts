@@ -23,11 +23,14 @@ export function useCalculation(): CalculationResult | null {
     // cumulativeFermentation include biga/poolish (k=1.0) se attivi — usato per WBlend
     const cumulativeF = cumulativeFermentation(state.phases);
 
-    // Se c'è biga/poolish, il lievito si calcola SOLO per la fase prefermento:
-    // il lievito viene messo tutto nel prefermento, che fermenta per quelle ore.
-    // Usare F totale darebbe un valore troppo basso (biga 18h + puntata + appretto = ~16h).
+    // Calibrazione Giorilli: 1 kg farina + 440g acqua + 10g lievito = 1% LDB su farina biga
+    // Condizioni di riferimento: 18h@18°C → F_REF = 18 × q10(18) ≈ 11.88
+    // Formula: yeastPercent ≈ 1% × (F_REF/F_biga) × (flourPercent/100) su farina totale
+    //          = 1% su farina biga alle condizioni standard, scalato con F e flourPercent.
+    const F_BIGA_REF = 18 * Math.pow(2, (18 - 24) / 10); // ≈ 11.88
     const yeastCalcF = prefermentiPhase
-      ? prefermentiPhase.hours * q10Factor(prefermentiPhase.temperatureCelsius) * prefermentiPhase.k
+      ? (prefermentiPhase.hours * q10Factor(prefermentiPhase.temperatureCelsius) * prefermentiPhase.k)
+        / (F_BIGA_REF * ((prefermentiPhase.flourPercent ?? 40) / 100))
       : cumulativeF;
     const yeastPercent = yeastPercentFromFermentation(yeastCalcF, state.yeastType);
     const ingredients = calculateIngredients(state, yeastPercent);

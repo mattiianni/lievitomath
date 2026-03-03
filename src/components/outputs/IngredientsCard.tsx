@@ -166,7 +166,7 @@ export function IngredientsCard() {
             </table>
           `}
           <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:8px 12px; margin-top:10px; font-size:12px; color:#9a3412;">
-            % lievito sulla farina: <strong>${yeastPercent.toFixed(3)}%</strong> · ${yeastTypeLabel(yeastType)}
+            % lievito: <strong>${prefermentiSplit ? (yeastPercent / (prefermentiSplit.prefermento.flourPercent / 100)).toFixed(2) + '% su farina ' + prefermentiSplit.prefermento.type + ' · ' + yeastPercent.toFixed(3) + '% su farina totale' : yeastPercent.toFixed(3) + '% sulla farina'}</strong> · ${yeastTypeLabel(yeastType)}
           </div>
         </div>
 
@@ -343,7 +343,11 @@ export function IngredientsCard() {
       )}
 
       <div className="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-xs text-neutral-500 mb-3">
-        % lievito: <strong>{yeastPercent.toFixed(3)}%</strong> sulla farina
+        {prefermentiSplit ? (
+          <>% lievito: <strong>{(yeastPercent / (prefermentiSplit.prefermento.flourPercent / 100)).toFixed(2)}%</strong> su farina {prefermentiSplit.prefermento.type} · <span className="opacity-70">{yeastPercent.toFixed(3)}% su farina totale</span></>
+        ) : (
+          <>% lievito: <strong>{yeastPercent.toFixed(3)}%</strong> sulla farina</>
+        )}
       </div>
 
       {/* Pulsante STAMPA */}

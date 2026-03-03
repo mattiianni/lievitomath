@@ -32,4 +32,5 @@ export interface DoughState {
   yeastType: YeastType;
   flours: Flour[];
   phases: FermentationPhase[];
+  staglioImmediato?: boolean; // solo teglia: se true, staglio subito dopo puntata (no frigo)
 }

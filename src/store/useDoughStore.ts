@@ -17,6 +17,7 @@ interface DoughStore {
   setSalt: (s: number) => void;
   setOil: (o: number) => void;
   setYeastType: (y: YeastType) => void;
+  setStaglioImmediato: (v: boolean) => void;
 
   updatePhase: (id: string, changes: Partial<FermentationPhase>) => void;
   togglePhase: (id: string) => void;
@@ -45,6 +46,7 @@ export const useDoughStore = create<DoughStore>()(
       setSalt: (salt) => set(s => ({ state: { ...s.state, salt } })),
       setOil: (oil) => set(s => ({ state: { ...s.state, oil } })),
       setYeastType: (yeastType) => set(s => ({ state: { ...s.state, yeastType } })),
+      setStaglioImmediato: (v) => set(s => ({ state: { ...s.state, staglioImmediato: v } })),
 
       updatePhase: (id, changes) =>
         set(s => ({
@@ -143,7 +145,7 @@ export const useDoughStore = create<DoughStore>()(
     }),
     {
       name: 'lievitomath-state',
-      version: 3,
+      version: 4,
       migrate: (persisted: unknown, version: number) => {
         let s = persisted as { state: DoughState };
         if (version < 2) {
@@ -163,6 +165,13 @@ export const useDoughStore = create<DoughStore>()(
             return p;
           });
           s = { state: { ...s.state, phases } };
+        }
+        if (version < 4) {
+          // Migra 'riposo' → 'appretto' nella teglia; aggiunge staglioImmediato
+          const phases = s.state.phases.map(p =>
+            p.id === 'riposo' ? { ...p, id: 'appretto', label: 'Appretto' } : p
+          );
+          s = { state: { ...s.state, phases, staglioImmediato: s.state.staglioImmediato ?? false } };
         }
         return s;
       },
