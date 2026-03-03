@@ -11,7 +11,7 @@ import { FermentationSummary } from './components/outputs/FermentationSummary';
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-stone-100 dark:bg-neutral-950 font-sans">
+    <div className="min-h-screen font-sans">
       <Header />
 
       {/* Print view — visibile solo in stampa */}
@@ -46,9 +46,13 @@ export default function App() {
           <FermentationSummary />
         </div>
 
-        <footer className="mt-10 text-center text-xs text-neutral-400 dark:text-neutral-600 pb-6">
-          <span style={{ fontFamily: 'Lobster, cursive' }} className="text-brand-400">LievitoMath</span>
-          {' '}— Algoritmo Q10 fermentativo · Disciplinare AVPN · Metodo Bonci per teglia
+        <footer className="mt-10 text-center pb-6">
+          <div style={{ fontFamily: 'Lobster, cursive' }} className="text-xl text-white dark:text-white/70 mb-0.5">
+            LievitoMath
+          </div>
+          <p className="text-xs text-white/75 dark:text-white/30">
+            Algoritmo Q10 fermentativo · Disciplinare AVPN · Metodo Bonci per teglia
+          </p>
         </footer>
       </main>
     </div>

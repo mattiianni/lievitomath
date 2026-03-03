@@ -12,15 +12,15 @@ export function ModeTab() {
   const resetToMode = useDoughStore(s => s.resetToMode);
 
   return (
-    <div className="flex gap-1 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-xl">
+    <div className="flex gap-1 p-1 bg-[#E0D5B6]/60 dark:bg-[#0A1228] rounded-xl">
       {MODES.map(m => (
         <button
           key={m.id}
           onClick={() => resetToMode(m.id)}
           className={`flex-1 flex flex-col items-center py-2 px-3 rounded-lg text-sm font-medium transition-all ${
             mode === m.id
-              ? 'bg-white dark:bg-neutral-700 text-brand-600 dark:text-brand-400 shadow-sm'
-              : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
+              ? 'bg-white dark:bg-[#1C2548] text-brand-600 dark:text-brand-400 shadow-sm'
+              : 'text-[#616B8F] dark:text-[#A19677] hover:bg-white/40 dark:hover:bg-[#1C2548]/50'
           }`}
         >
           <span className="text-lg">{m.emoji}</span>

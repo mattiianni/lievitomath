@@ -14,13 +14,58 @@ const SEVERITY_STYLES = {
 
 const SEVERITY_LABEL = { ok: 'In target', warn: 'Attenzione', critical: 'Farina troppo debole' };
 
-type FlourEntry = { flourKey: string; percentage: number };
-
 const validFlours = KNOWN_FLOURS.filter(f => f.w > 0);
 const defaultKey = `${validFlours[0].brand}||${validFlours[0].name}`;
 
 function keyToFlour(key: string): KnownFlour | undefined {
   return validFlours.find(f => `${f.brand}||${f.name}` === key);
+}
+
+/**
+ * Calcola le percentuali ottimali per un blend di N farine per raggiungere targetW.
+ * Usa interpolazione lineare sulla coppia che "braccia" il target.
+ * Le farine extra (non usate) restano a 0%.
+ */
+function computeOptimalBlend(flours: KnownFlour[], targetW: number): number[] {
+  if (flours.length === 0) return [];
+  if (flours.length === 1) return [100];
+
+  const sorted = flours.map((f, i) => ({ w: f.w, i })).sort((a, b) => a.w - b.w);
+  const pct = new Array(flours.length).fill(0);
+
+  // Target sotto il minimo: 100% farina più debole
+  if (targetW <= sorted[0].w) {
+    pct[sorted[0].i] = 100;
+    return pct;
+  }
+  // Target sopra il massimo: 100% farina più forte
+  if (targetW >= sorted[sorted.length - 1].w) {
+    pct[sorted[sorted.length - 1].i] = 100;
+    return pct;
+  }
+
+  // Trova la coppia che bracketta il target
+  let lo = sorted[0];
+  let hi = sorted[sorted.length - 1];
+  for (let k = 0; k < sorted.length - 1; k++) {
+    if (sorted[k].w <= targetW && sorted[k + 1].w >= targetW) {
+      lo = sorted[k];
+      hi = sorted[k + 1];
+      break;
+    }
+  }
+
+  if (lo.w === hi.w) {
+    pct[lo.i] = 100;
+    return pct;
+  }
+
+  // Interpolazione lineare, arrotonda al 5% più vicino
+  const rawLo = ((hi.w - targetW) / (hi.w - lo.w)) * 100;
+  const pLo = Math.round(rawLo / 5) * 5;
+  pct[lo.i] = pLo;
+  pct[hi.i] = 100 - pLo;
+  return pct;
 }
 
 export function FlourActual() {
@@ -29,72 +74,49 @@ export function FlourActual() {
   const setUserFlourBanner = useDoughStore(s => s.setUserFlourBanner);
 
   const [isOpen, setIsOpen] = useState(false);
-  const [entries, setEntries] = useState<FlourEntry[]>([
-    { flourKey: defaultKey, percentage: 100 },
-  ]);
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([defaultKey]);
 
   const byBrand = getFloursByBrand();
   const brands = Object.keys(byBrand).filter(b => byBrand[b].some(f => f.w > 0));
   const targetW = result?.wBlend.targetW ?? 0;
-  const total = entries.reduce((s, e) => s + e.percentage, 0);
-  const isValid = total === 100 && entries.length > 0;
 
-  // Diagnosi: usa media pesata delle farine inserite
-  const blendW = entries.reduce((sum, e) => {
-    const f = keyToFlour(e.flourKey);
-    return f ? sum + (f.w * e.percentage) / 100 : sum;
-  }, 0);
-  const diagnosis = result && isValid ? getFlourDiagnosis(Math.round(blendW), targetW) : null;
+  // Calcolo blend ottimale
+  const selectedFlours = selectedKeys
+    .map(k => keyToFlour(k))
+    .filter((f): f is KnownFlour => f !== undefined);
+  const blendPercentages = computeOptimalBlend(selectedFlours, targetW);
+  const blendW = Math.round(
+    selectedFlours.reduce((sum, f, i) => sum + (f.w * blendPercentages[i]) / 100, 0)
+  );
+  const diagnosis = result ? getFlourDiagnosis(blendW, targetW) : null;
   const diagStyles = diagnosis ? SEVERITY_STYLES[diagnosis.severity] : null;
 
-  function addEntry() {
-    setEntries(prev => [...prev, { flourKey: defaultKey, percentage: 0 }]);
+  function addFlourRow() {
+    setSelectedKeys(prev => [...prev, defaultKey]);
   }
 
-  function removeEntry(idx: number) {
-    if (entries.length <= 1) return;
-    setEntries(prev => prev.filter((_, i) => i !== idx));
+  function removeFlourRow(idx: number) {
+    if (selectedKeys.length <= 1) return;
+    setSelectedKeys(prev => prev.filter((_, i) => i !== idx));
   }
 
   function updateKey(idx: number, key: string) {
-    setEntries(prev => prev.map((e, i) => i === idx ? { ...e, flourKey: key } : e));
-  }
-
-  function updatePct(idx: number, val: number) {
-    const clamped = Math.max(0, Math.min(100, Math.round(val)));
-    setEntries(prev => prev.map((e, i) => i === idx ? { ...e, percentage: clamped } : e));
+    setSelectedKeys(prev => prev.map((k, i) => i === idx ? key : k));
   }
 
   function handleApply() {
-    if (!isValid || !result) return;
-    const newFlours = entries.map(e => {
-      const f = keyToFlour(e.flourKey)!;
-      return { brand: f.brand, name: f.name, w: f.w, percentage: e.percentage };
-    });
+    if (!result || selectedFlours.length === 0) return;
+    const newFlours = selectedFlours
+      .map((f, i) => ({ brand: f.brand, name: f.name, w: f.w, percentage: blendPercentages[i] }))
+      .filter(f => f.percentage > 0);
+    if (newFlours.length === 0) return;
     setFlours(newFlours);
-    const blendLabel = newFlours.map(f => `${f.brand} ${f.name} ${f.percentage}%`).join(' + ');
-    setUserFlourBanner(blendLabel);
+    const label = newFlours.map(f => `${f.brand} ${f.name} ${f.percentage}%`).join(' + ');
+    setUserFlourBanner(label);
     setTimeout(() => {
       document.getElementById('ingredients-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 80);
   }
-
-  const selectEl = (
-    <optgroup label="">
-      {brands.map(brand => (
-        <optgroup key={brand} label={brand}>
-          {byBrand[brand]
-            .filter(f => f.w > 0)
-            .map(f => (
-              <option key={`${f.brand}||${f.name}`} value={`${f.brand}||${f.name}`}>
-                {f.name} — W{f.w}
-              </option>
-            ))}
-        </optgroup>
-      ))}
-    </optgroup>
-  );
-  void selectEl; // unused — built inline below
 
   return (
     <SectionCard title="Farina attuale">
@@ -113,16 +135,24 @@ export function FlourActual() {
 
       {isOpen && (
         <div className="mt-3 space-y-3">
+          {/* Target W reminder */}
+          {result && (
+            <p className="text-xs text-neutral-400 dark:text-neutral-500">
+              Target ricetta: <strong className="text-neutral-700 dark:text-neutral-300">W{targetW}</strong>
+              {' '}· inserisci le farine che hai, il blend viene calcolato automaticamente.
+            </p>
+          )}
 
-          {/* Lista farine */}
+          {/* Lista farine — solo selezione, % calcolata */}
           <div className="space-y-2">
-            {entries.map((entry, idx) => {
-              const flour = keyToFlour(entry.flourKey);
+            {selectedKeys.map((key, idx) => {
+              const flour = keyToFlour(key);
+              const pct = blendPercentages[idx] ?? 0;
               return (
                 <div key={idx} className="flex items-center gap-2">
                   {/* Dropdown farina */}
                   <select
-                    value={entry.flourKey}
+                    value={key}
                     onChange={e => updateKey(idx, e.target.value)}
                     className="flex-1 min-w-0 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-neutral-800 dark:text-neutral-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   >
@@ -139,18 +169,12 @@ export function FlourActual() {
                     ))}
                   </select>
 
-                  {/* % input */}
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={entry.percentage}
-                      onChange={e => updatePct(idx, Number(e.target.value))}
-                      className="w-14 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-sm text-center font-bold text-neutral-800 dark:text-neutral-200 px-1 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    />
-                    <span className="text-xs text-neutral-400">%</span>
-                  </div>
+                  {/* Percentuale calcolata (read-only) */}
+                  <span className={`text-sm font-bold w-12 text-right flex-shrink-0 ${
+                    pct > 0 ? 'text-neutral-800 dark:text-neutral-100' : 'text-neutral-300 dark:text-neutral-600'
+                  }`}>
+                    {pct}%
+                  </span>
 
                   {/* W badge */}
                   {flour && (
@@ -158,9 +182,9 @@ export function FlourActual() {
                   )}
 
                   {/* Rimuovi */}
-                  {entries.length > 1 && (
+                  {selectedKeys.length > 1 && (
                     <button
-                      onClick={() => removeEntry(idx)}
+                      onClick={() => removeFlourRow(idx)}
                       className="text-neutral-300 hover:text-red-400 dark:text-neutral-600 dark:hover:text-red-400 text-lg leading-none flex-shrink-0 transition-colors"
                     >
                       ×
@@ -171,21 +195,23 @@ export function FlourActual() {
             })}
           </div>
 
-          {/* Totale + aggiungi */}
+          {/* Aggiungi + W blend risultante */}
           <div className="flex items-center justify-between">
             <button
-              onClick={addEntry}
+              onClick={addFlourRow}
               className="flex items-center gap-1 text-xs text-brand-600 dark:text-brand-400 hover:text-brand-700 font-semibold transition-colors"
             >
               <span className="text-base leading-none">+</span> Aggiungi farina
             </button>
-            <span className={`text-xs font-bold ${total === 100 ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
-              Totale: {total}%{total !== 100 && ' ≠ 100'}
-            </span>
+            {selectedFlours.length > 0 && (
+              <span className="text-xs text-neutral-400">
+                Blend W: <strong className="text-neutral-700 dark:text-neutral-200">{blendW}</strong>
+              </span>
+            )}
           </div>
 
           {/* Diagnosi blend */}
-          {diagnosis && diagStyles && isValid && result && (
+          {diagnosis && diagStyles && result && (
             <div className={`rounded-xl border p-3 ${diagStyles.card}`}>
               <div className="flex items-center gap-2 mb-1">
                 <span className={`w-2 h-2 rounded-full flex-shrink-0 ${diagStyles.dot}`} />
@@ -197,14 +223,10 @@ export function FlourActual() {
             </div>
           )}
 
-          {!isValid && total !== 100 && entries.length > 0 && (
-            <p className="text-xs text-red-500 text-center">Il totale deve essere 100% per aggiornare il calcolo.</p>
-          )}
-
           {/* Bottone applica */}
           <button
             onClick={handleApply}
-            disabled={!isValid || !result}
+            disabled={!result || selectedFlours.length === 0}
             className="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors"
           >
             AGGIORNA CALCOLO CON QUESTE FARINE
