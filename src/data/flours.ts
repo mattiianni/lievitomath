@@ -17,28 +17,30 @@ export const KNOWN_FLOURS: KnownFlour[] = [
   { brand: 'Caputo', name: 'Criscito (Manitoba)', w: 380, type: 'manitoba', notes: 'Rinforzo blend, max 30%' },
   { brand: 'Caputo', name: 'Fioreglut (gluten free)', w: 0, type: 'altro',  notes: 'Senza glutine, W non applicabile' },
 
-  // --- LE 5 STAGIONI ---
-  { brand: 'Le 5 Stagioni', name: 'Napoletana',   w: 280, type: '00' },
-  { brand: 'Le 5 Stagioni', name: 'Pizza',        w: 320, type: '00',       notes: 'Teglia e napoletana lunga' },
-  { brand: 'Le 5 Stagioni', name: 'Oro',          w: 390, type: '0',        notes: 'Prefermenti e biga' },
-  { brand: 'Le 5 Stagioni', name: 'Integrale',    w: 180, type: 'integrale' },
+  // --- COOP ---
+  { brand: 'Coop', name: 'Farina 00',             w: 150, type: '00',       notes: 'W 140-160, biscotti e dolci' },
+  { brand: 'Coop', name: 'Farina 0',              w: 225, type: '0',        notes: 'W 200-250, pane e pizza base' },
+  { brand: 'Coop', name: 'Farina Tipo 1',         w: 200, type: '1',        notes: 'W 180-220, pane e lievitati base' },
+  { brand: 'Coop', name: 'Farina Tipo 2',         w: 200, type: '2',        notes: 'W 180-220, pane e focacce' },
+  { brand: 'Coop', name: 'Manitoba 0',            w: 325, type: 'manitoba', notes: 'W 300-350, pizza lunga e dolci lievitati' },
 
-  // --- MOLINO DALLAGIOVANNA ---
-  { brand: 'Molino Dallagiovanna', name: 'ORO',   w: 370, type: '00',       notes: 'Lunghe lievitazioni' },
-  { brand: 'Molino Dallagiovanna', name: 'Uniqua Blu', w: 320, type: '0',   notes: 'Polifunzionale' },
+  // --- PETRA (Molino Quaglia) ---
+  { brand: 'Petra', name: '1',                    w: 300, type: '1',        notes: 'W stimato da prot. 14% (non dichiarato). Pane, dolci lievitati.' },
+  { brand: 'Petra', name: '9',                    w: 310, type: '0',        notes: 'W stimato da prot. 14.4% (non dichiarato). Pizza media-lunga lievitazione.' },
+  { brand: 'Petra', name: '5063',                 w: 270, type: '00',       notes: 'W 260-280. Pizza e pane diretti.' },
+  { brand: 'Petra', name: '0102 HP',              w: 330, type: '0',        notes: 'W 320-340. Pizza e pane lunga lievitazione.' },
+  { brand: 'Petra', name: '5072',                 w: 330, type: '0',        notes: 'W 320-340. Pizza e pane lunga lievitazione.' },
+  { brand: 'Petra', name: '5078 (Più Snella)',    w: 365, type: '0',        notes: 'W 350-380. Pizza molto idratata, teglia.' },
+  { brand: 'Petra', name: '6384',                 w: 380, type: 'altro',    notes: 'W 370-390. Panettone, pandoro, colombe.' },
+  { brand: 'Petra', name: '3 (integrale)',        w: 0,   type: 'integrale', notes: 'Integrale, W non significativo.' },
 
-  // --- MULINO MARINO ---
-  { brand: 'Mulino Marino', name: 'Tipo 1',       w: 200, type: '1',        notes: 'Macinata a pietra' },
-  { brand: 'Mulino Marino', name: 'Semintegrale', w: 210, type: '1' },
-
-  // --- GAROFALO ---
-  { brand: 'Garofalo', name: 'Farina 0',          w: 290, type: '0' },
-  { brand: 'Garofalo', name: 'Manitoba',          w: 400, type: 'manitoba', notes: 'Rinforzo blend' },
-
-  // --- GENERICHE / SUPERMARKET ---
+  // --- GENERICHE ---
   { brand: 'Generica', name: 'Farina 00 debole',  w: 150, type: '00',       notes: 'Farine comuni supermercato' },
   { brand: 'Generica', name: 'Farina 00 media',   w: 220, type: '00' },
-  { brand: 'Generica', name: 'Manitoba supermarket', w: 350, type: 'manitoba' },
+  { brand: 'Generica', name: 'Farina 0',          w: 240, type: '0' },
+  { brand: 'Generica', name: 'Farina Tipo 1',     w: 200, type: '1',        notes: 'Semi-integrale, W approssimativo' },
+  { brand: 'Generica', name: 'Farina Tipo 2',     w: 170, type: '2',        notes: 'Quasi integrale, W approssimativo' },
+  { brand: 'Generica', name: 'Manitoba',          w: 350, type: 'manitoba' },
   { brand: 'Generica', name: 'Semola rimacinata', w: 180, type: 'semola' },
   { brand: 'Generica', name: 'Farro integrale',   w: 100, type: 'farro',    notes: 'W approssimativo' },
 ];

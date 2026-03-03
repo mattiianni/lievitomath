@@ -6,6 +6,10 @@ import { getDefaultState } from '../constants/modes';
 interface DoughStore {
   state: DoughState;
 
+  // Transient UI state (not persisted)
+  userFlourBanner: string | null;
+  setUserFlourBanner: (msg: string | null) => void;
+
   setMode: (mode: DoughMode) => void;
   setPieces: (n: number) => void;
   setWeightPerPiece: (w: number) => void;
@@ -20,6 +24,7 @@ interface DoughStore {
   addFlour: () => void;
   updateFlour: (id: string, changes: Partial<Flour>) => void;
   removeFlour: (id: string) => void;
+  setFlours: (flours: Omit<Flour, 'id'>[]) => void;
   normalizeFlourPercentages: () => void;
 
   resetToMode: (mode: DoughMode) => void;
@@ -29,6 +34,9 @@ export const useDoughStore = create<DoughStore>()(
   persist(
     (set) => ({
       state: getDefaultState('napoletana'),
+      userFlourBanner: null,
+
+      setUserFlourBanner: (msg) => set(() => ({ userFlourBanner: msg })),
 
       setMode: (mode) => set(s => ({ state: { ...s.state, mode } })),
       setPieces: (pieces) => set(s => ({ state: { ...s.state, pieces } })),
@@ -66,13 +74,11 @@ export const useDoughStore = create<DoughStore>()(
             w: 260,
             percentage: 0,
           };
-          // Ridistribuisci equamente
           const count = existing.length + 1;
           const flours = [...existing, newFlour].map(f => ({
             ...f,
             percentage: Math.round(100 / count),
           }));
-          // Aggiusta l'ultima per arrivare a 100
           const total = flours.reduce((s, f) => s + f.percentage, 0);
           flours[flours.length - 1].percentage += 100 - total;
           return { state: { ...s.state, flours } };
@@ -90,7 +96,6 @@ export const useDoughStore = create<DoughStore>()(
         set(s => {
           const flours = s.state.flours.filter(f => f.id !== id);
           if (flours.length === 0) return s;
-          // Normalizza le percentuali
           const total = flours.reduce((sum, f) => sum + f.percentage, 0);
           if (total === 0) {
             const eq = Math.round(100 / flours.length);
@@ -110,6 +115,14 @@ export const useDoughStore = create<DoughStore>()(
           return { state: { ...s.state, flours: normalized } };
         }),
 
+      setFlours: (newFlours) =>
+        set(s => ({
+          state: {
+            ...s.state,
+            flours: newFlours.map(f => ({ ...f, id: crypto.randomUUID() })),
+          },
+        })),
+
       normalizeFlourPercentages: () =>
         set(s => {
           const flours = s.state.flours;
@@ -128,6 +141,7 @@ export const useDoughStore = create<DoughStore>()(
     {
       name: 'lievitomath-state',
       version: 1,
+      partialize: (s) => ({ state: s.state }),
     }
   )
 );

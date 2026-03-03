@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useCalculation } from '../../hooks/useCalculation';
 import { useDoughStore } from '../../store/useDoughStore';
 import { SectionCard } from '../ui/SectionCard';
@@ -14,6 +15,15 @@ export function IngredientsCard() {
   const yeastType = useDoughStore(s => s.state.yeastType);
   const mode = useDoughStore(s => s.state.mode);
   const state = useDoughStore(s => s.state);
+  const userFlourBanner = useDoughStore(s => s.userFlourBanner);
+  const setUserFlourBanner = useDoughStore(s => s.setUserFlourBanner);
+
+  // Auto-dismiss banner dopo 7 secondi
+  useEffect(() => {
+    if (!userFlourBanner) return;
+    const t = setTimeout(() => setUserFlourBanner(null), 7000);
+    return () => clearTimeout(t);
+  }, [userFlourBanner, setUserFlourBanner]);
 
   if (!result) {
     return (
@@ -149,7 +159,25 @@ export function IngredientsCard() {
   }
 
   return (
+    <div id="ingredients-card">
     <SectionCard title="Ingredienti">
+      {/* Banner CALCOLO AGGIORNATO */}
+      {userFlourBanner && (
+        <div className="mb-4 rounded-xl border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/30 px-3 py-2.5">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-xs font-bold text-green-700 dark:text-green-300 uppercase tracking-wide">
+                ✓ Calcolo aggiornato con farine utente
+              </p>
+              <p className="text-xs text-green-600 dark:text-green-400 mt-0.5">{userFlourBanner}</p>
+            </div>
+            <button
+              onClick={() => setUserFlourBanner(null)}
+              className="text-green-400 hover:text-green-600 dark:hover:text-green-200 text-lg leading-none flex-shrink-0 mt-0.5"
+            >×</button>
+          </div>
+        </div>
+      )}
       <div className="space-y-1 mb-4">
         {rows.map(row => (
           <div
@@ -189,5 +217,6 @@ export function IngredientsCard() {
         Stampa / Salva PDF
       </button>
     </SectionCard>
+    </div>
   );
 }
