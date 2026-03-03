@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100;
+    margin: 0;
+    min-height: 100vh;
+  }
+}
+
+/* ─── Slider track visibile in light e dark mode ─── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  background: transparent;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #d1d5db;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ea580c;
+  margin-top: -6px;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+input[type="range"]::-moz-range-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #d1d5db;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ea580c;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.dark input[type="range"]::-webkit-slider-runnable-track {
+  background: #404040;
+}
+.dark input[type="range"]::-moz-range-track {
+  background: #404040;
+}
+.dark input[type="range"]::-webkit-slider-thumb {
+  background: #f97316;
+  border-color: #171717;
+}
+.dark input[type="range"]::-moz-range-thumb {
+  background: #f97316;
+  border-color: #171717;
+}
+
+/* ─── PRINT ─── */
+.print-only { display: none; }
+
+@media print {
+  .print-hidden { display: none !important; }
+  .print-only   { display: block !important; }
+
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+  }
+
+  @page {
+    size: A4;
+    margin: 18mm 15mm;
+  }
+}
