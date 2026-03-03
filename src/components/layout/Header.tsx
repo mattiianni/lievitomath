@@ -22,7 +22,7 @@ export function Header() {
             LievitoMath
           </h1>
           <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-0.5 tracking-wide">
-            v{APP_VERSION} · {APP_DATE}
+            © Mattia Ianniello · v{APP_VERSION} · {APP_DATE}
           </p>
         </div>
       </div>
