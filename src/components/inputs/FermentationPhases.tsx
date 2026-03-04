@@ -40,11 +40,8 @@ function formatHours(h: number) {
 
 export function FermentationPhases() {
   const phases = useDoughStore(s => s.state.phases);
-  const mode = useDoughStore(s => s.state.mode);
-  const staglioImmediato = useDoughStore(s => s.state.staglioImmediato ?? false);
   const updatePhase = useDoughStore(s => s.updatePhase);
   const togglePhase = useDoughStore(s => s.togglePhase);
-  const setStaglioImmediato = useDoughStore(s => s.setStaglioImmediato);
   const result = useCalculation();
 
   // AUTO switch (per biga/poolish): toggle locale, non persistito
@@ -54,28 +51,6 @@ export function FermentationPhases() {
   return (
     <SectionCard title="Fasi di fermentazione">
       <div className="flex flex-col gap-3">
-
-        {/* Toggle Staglio Immediato — tutti i sistemi */}
-        <div className="flex items-center justify-between rounded-xl border border-neutral-200 dark:border-neutral-700 px-3 py-2.5 bg-neutral-50 dark:bg-neutral-800/50">
-          <div>
-            <span className="text-sm font-semibold">Staglio immediato</span>
-            <span className="block text-xs text-neutral-500 dark:text-neutral-400">
-              {staglioImmediato
-                ? 'Staglio prima della puntata (porzioni separate fin dall\'inizio)'
-                : 'Staglio dopo puntata — massa unica fino allo staglio (standard)'}
-            </span>
-          </div>
-          <button
-            onClick={() => setStaglioImmediato(!staglioImmediato)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ml-3 ${
-              staglioImmediato ? 'bg-teal-500' : 'bg-neutral-300 dark:bg-neutral-600'
-            }`}
-          >
-            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-              staglioImmediato ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-        </div>
 
         {phases.map((phase, idx) => {
           const isPrefermento = PREFERMENTI.includes(phase.id);
@@ -102,12 +77,6 @@ export function FermentationPhases() {
                     <span className="font-semibold text-sm">{phase.label}</span>
                     {phase.k === 0.0 && !PHASE_ICONS[phase.id] && (
                       <span className="text-xs opacity-60">⏸ riposo</span>
-                    )}
-                    {/* Badge staglio immediato sulla puntata */}
-                    {staglioImmediato && phase.id === 'puntata' && (
-                      <span className="text-xs font-semibold bg-teal-500 text-white rounded-full px-2 py-0.5">
-                        staglio prima
-                      </span>
                     )}
                   </div>
                   {!phase.locked && (
