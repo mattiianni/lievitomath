@@ -3,9 +3,9 @@ import { SectionCard } from '../ui/SectionCard';
 import type { YeastType } from '../../types/dough';
 
 const MAIN_OPTIONS: { id: YeastType; label: string; sublabel: string; emoji: string }[] = [
-  { id: 'fresh',       label: 'Fresco',           sublabel: 'Cubetto 25g',      emoji: '🟡' },
-  { id: 'instant_dry', label: 'Secco istantaneo', sublabel: 'IDY (es. Caputo)', emoji: '🟤' },
-  { id: 'madre',       label: 'Lievito naturale', sublabel: 'Madre / Li.Co.Li', emoji: '🍶' },
+  { id: 'fresh',       label: 'Fresco',   sublabel: 'Cubetto 25g',      emoji: '🍺' },
+  { id: 'instant_dry', label: 'Secco',    sublabel: 'IDY (es. Caputo)', emoji: '✨' },
+  { id: 'madre',       label: 'Naturale', sublabel: 'Madre / Li.Co.Li', emoji: '🍶' },
 ];
 
 export function YeastSelector() {
