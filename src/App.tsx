@@ -47,10 +47,10 @@ export default function App() {
         </div>
 
         <footer className="mt-10 text-center pb-6">
-          <div style={{ fontFamily: 'Lobster, cursive' }} className="text-xl text-white dark:text-white/70 mb-0.5">
+          <div style={{ fontFamily: 'Lobster, cursive' }} className="text-xl text-white dark:text-white/80 mb-0.5">
             LievitoMath
           </div>
-          <p className="text-xs text-white/75 dark:text-white/30">
+          <p className="text-xs text-white/75 dark:text-white/70">
             Algoritmo Q10 fermentativo · Disciplinare AVPN · Metodo Bonci per teglia
           </p>
         </footer>

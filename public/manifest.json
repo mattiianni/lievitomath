@@ -1,0 +1,24 @@
+{
+  "name": "LievitoMath",
+  "short_name": "LievitoMath",
+  "description": "Calcolatore avanzato per impasti lievitati — algoritmo Q10 fermentativo",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#121A36",
+  "theme_color": "#121A36",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

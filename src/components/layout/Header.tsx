@@ -5,7 +5,7 @@ export function Header() {
   const { dark, toggle } = useTheme();
 
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between px-4 py-2.5 bg-[#B6BFE0] dark:bg-[#0A1228] border-b border-[#A19677]/25 dark:border-[#616B8F]/20 shadow-sm print-hidden">
+    <header className="sticky top-0 z-10 flex items-center justify-between px-4 py-2.5 bg-[#9BACD2] dark:bg-[#121A36] border-b border-[#A19677]/25 dark:border-[#616B8F]/20 shadow-sm print-hidden">
       <div className="flex items-center gap-3">
         {/* Metti il file logo.png nella cartella /public/ del progetto */}
         <img
@@ -17,11 +17,11 @@ export function Header() {
         <div>
           <h1
             className="text-4xl md:text-5xl text-white dark:text-brand-400 leading-none"
-            style={{ fontFamily: 'Lobster, cursive' }}
+            style={{ fontFamily: 'Lobster, cursive', textShadow: '0 2px 10px rgba(0,0,0,0.4)' }}
           >
             LievitoMath
           </h1>
-          <p className="text-[11px] text-white/80 dark:text-neutral-500 mt-0.5 tracking-wide">
+          <p className="text-[11px] text-white/80 dark:text-white/70 mt-0.5 tracking-wide">
             © Mattia Ianniello · v{APP_VERSION} · {APP_DATE}
           </p>
         </div>
