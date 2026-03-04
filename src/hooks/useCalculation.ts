@@ -24,16 +24,32 @@ export function useCalculation(): CalculationResult | null {
     // Passa yeastType per applicare k_frigo corretto (sourdough ≠ lievito di birra)
     const cumulativeF = cumulativeFermentation(state.phases, state.yeastType);
 
-    // Calibrazione Giorilli: 1 kg farina + 440g acqua + 10g lievito = 1% LDB su farina biga
-    // Condizioni di riferimento: 18h@18°C → F_REF = 18 × q10(18) ≈ 11.88
-    // Formula: yeastPercent ≈ 1% × (F_REF/F_biga) × (flourPercent/100) su farina totale
-    //          = 1% su farina biga alle condizioni standard, scalato con F e flourPercent.
-    const F_BIGA_REF = 18 * Math.pow(2, (18 - 24) / 10); // ≈ 11.88
+    // ── Calibrazione lievito ────────────────────────────────────────────────
+    // BIGA (Giorilli): 1% LdB su farina biga @18h@18°C
+    //   F_BIGA_REF = 18 × q10(18) ≈ 11.88
+    //   yeastCalcF = F_biga / (F_BIGA_REF × flourPct)
+    //   check: 11.88/(11.88×0.40) = 2.5 → 1/2.5 = 0.40% tot = 1.0% su biga ✓
+    //   La biga è sempre LdB fresco per definizione.
+    //
+    // POOLISH: 0.3% LdB su farina poolish @12h@20°C
+    //   F_POOLISH_REF = 12 × q10(20) ≈ 9.09
+    //   yeastCalcF = F_poolish / (F_POOLISH_REF × flourPct × 0.3)
+    //   check: 9.09/(9.09×0.30×0.3) = 11.11 → 1/11.11 = 0.09% tot = 0.3% su poolish ✓
+    //   LM poolish: con sourdough factor=60 → (1/11.11)×60 = 5.4% tot = 18% su poolish ✓
+    const F_BIGA_REF    = 18 * Math.pow(2, (18 - 24) / 10); // ≈ 11.88
+    const F_POOLISH_REF = 12 * Math.pow(2, (20 - 24) / 10); // ≈ 9.09
+
+    // Biga: sempre LdB fresco (per definizione); poolish: segue la scelta utente
+    const effectiveYeastType = prefermentiPhase?.id === 'biga' ? 'fresh' : state.yeastType;
+
     const yeastCalcF = prefermentiPhase
-      ? (prefermentiPhase.hours * q10Factor(prefermentiPhase.temperatureCelsius) * prefermentiPhase.k)
-        / (F_BIGA_REF * ((prefermentiPhase.flourPercent ?? 40) / 100))
+      ? prefermentiPhase.id === 'biga'
+        ? (prefermentiPhase.hours * q10Factor(prefermentiPhase.temperatureCelsius) * prefermentiPhase.k)
+          / (F_BIGA_REF * ((prefermentiPhase.flourPercent ?? 40) / 100))
+        : (prefermentiPhase.hours * q10Factor(prefermentiPhase.temperatureCelsius) * prefermentiPhase.k)
+          / (F_POOLISH_REF * ((prefermentiPhase.flourPercent ?? 30) / 100) * 0.3)
       : cumulativeF;
-    const yeastPercent = yeastPercentFromFermentation(yeastCalcF, state.yeastType);
+    const yeastPercent = yeastPercentFromFermentation(yeastCalcF, effectiveYeastType);
     const ingredients = calculateIngredients(state, yeastPercent);
     const hydrationStatus = getHydrationStatus(state.hydration, state.mode);
     const wBlend = calcWBlend(state.flours, state.mode, cumulativeF);

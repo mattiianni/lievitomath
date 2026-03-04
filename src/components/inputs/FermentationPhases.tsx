@@ -275,7 +275,7 @@ export function FermentationPhases() {
                       const T_fridge  = frigoP.temperatureCelsius;
                       const T_amb     = phase.temperatureCelsius;
                       const T_target  = 14;   // °C minima per impasto lavorabile
-                      const lambda    = 0.5;  // costante termica empirica per panetto pizza
+                      const lambda    = 0.25; // τ≈4h empirico per panetto pizza 200-300g
 
                       if (T_fridge >= T_target) return null;
 
