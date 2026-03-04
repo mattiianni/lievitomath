@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+
 interface NumberInputProps {
   label: string;
   value: number;
@@ -10,6 +12,13 @@ interface NumberInputProps {
 }
 
 export function NumberInput({ label, value, onChange, min, max, step = 1, unit, hint }: NumberInputProps) {
+  const [display, setDisplay] = useState(String(value));
+
+  // Sincronizza display solo se il valore esterno cambia (es. reset modo)
+  useEffect(() => {
+    setDisplay(String(value));
+  }, [value]);
+
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-baseline justify-between">
@@ -19,13 +28,22 @@ export function NumberInput({ label, value, onChange, min, max, step = 1, unit, 
       <div className="relative flex items-center">
         <input
           type="number"
-          value={value}
+          inputMode="decimal"
+          value={display}
           min={min}
           max={max}
           step={step}
+          onFocus={e => e.target.select()}
           onChange={e => {
-            const v = parseFloat(e.target.value);
+            const raw = e.target.value;
+            setDisplay(raw);
+            const v = parseFloat(raw);
             if (!isNaN(v)) onChange(v);
+          }}
+          onBlur={() => {
+            // Ripristina valore valido se l'utente ha lasciato il campo vuoto/invalido
+            const v = parseFloat(display);
+            if (isNaN(v)) setDisplay(String(value));
           }}
           className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition pr-10"
         />
