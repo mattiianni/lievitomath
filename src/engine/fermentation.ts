@@ -18,19 +18,21 @@ export function q10Factor(tempC: number): number {
  * Coefficienti di fase k:
  *   puntata (bulk):  k = 1.0
  *   frigo LdB:       k = 0.2
- *   frigo LM:        k = 1.5 (i batteri lattici continuano ad acidificare → maturazione rapida)
+ *   frigo LM:        k = 0.7 (il lievito nel LM rallenta al freddo come il LdB; k leggermente
+ *                             superiore per la presenza di lieviti selvatici più resistenti al freddo)
  *   appretto:        k = 0.6
  *
- * Effetto pratico sul lievito madre:
- *   senza frigo (2h+4h): F≈4.1 → ~15% LM
- *   16h frigo:           F≈10  → ~6%  LM  (differenza reale ✓)
+ * Calibrazione LM (YEAST_FACTORS.sourdough = 80):
+ *   senza frigo (2h+4h): F≈4.1 → ~20% LM  (professionale: 20-30%)
+ *   16h frigo:           F≈6.9 → ~12% LM  (professionale:  8-15%)
+ *   24h frigo:           F≈8.3 → ~10% LM  (professionale:  5-10%)
  */
 export function cumulativeFermentation(phases: FermentationPhase[], yeastType?: YeastType): number {
   return phases
     .filter(p => p.active && p.hours > 0)
     .reduce((sum, phase) => {
-      // Lievito madre in frigo: acidificazione LAB continua → k molto più alto del lievito di birra
-      const effectiveK = (yeastType === 'sourdough' && phase.k === 0.2) ? 1.5 : phase.k;
+      // LM in frigo: lieviti selvatici leggermente più resistenti al freddo del LdB, ma k non molto diverso
+      const effectiveK = (yeastType === 'sourdough' && phase.k === 0.2) ? 0.7 : phase.k;
       return sum + phase.hours * q10Factor(phase.temperatureCelsius) * effectiveK;
     }, 0);
 }
@@ -47,13 +49,13 @@ export function yeastPercentFromFermentation(
   const YEAST_FACTORS: Record<YeastType, number> = {
     fresh: 1.0,
     instant_dry: 0.33,  // IDY è ~3× più potente del fresco
-    sourdough: 60.0,    // lievito madre: tipicamente 10-25% sulla farina
+    sourdough: 80.0,    // lievito madre: tipicamente 10-25% sulla farina
   };
 
   const CLAMP: Record<YeastType, [number, number]> = {
     fresh: [0.04, 3.0],
     instant_dry: [0.015, 1.0],
-    sourdough: [5.0, 50.0],  // min 5% anche per lunghe maturazioni
+    sourdough: [3.0, 50.0],  // min 3%: fermentazioni molto lunghe (48h+) possono usare meno
   };
 
   const BASE_DOSE = 1.0;
