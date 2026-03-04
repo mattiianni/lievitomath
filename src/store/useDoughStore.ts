@@ -41,7 +41,14 @@ export const useDoughStore = create<DoughStore>()((set) => ({
   setHydration: (h) => set(s => ({ state: { ...s.state, hydration: h } })),
   setSalt: (salt) => set(s => ({ state: { ...s.state, salt } })),
   setOil: (oil) => set(s => ({ state: { ...s.state, oil } })),
-  setYeastType: (yeastType) => set(s => ({ state: { ...s.state, yeastType } })),
+  setYeastType: (yeastType) => set(s => {
+    // Biga non è compatibile con madre/licoli → la disattiviamo automaticamente
+    const isSourdough = yeastType === 'madre' || yeastType === 'licoli';
+    const phases = isSourdough
+      ? s.state.phases.map(p => p.id === 'biga' ? { ...p, active: false } : p)
+      : s.state.phases;
+    return { state: { ...s.state, yeastType, phases } };
+  }),
   setStaglioImmediato: (v) => set(s => ({ state: { ...s.state, staglioImmediato: v } })),
 
   updatePhase: (id, changes) =>

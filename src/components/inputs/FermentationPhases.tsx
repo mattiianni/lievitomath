@@ -42,7 +42,10 @@ export function FermentationPhases() {
   const phases = useDoughStore(s => s.state.phases);
   const updatePhase = useDoughStore(s => s.updatePhase);
   const togglePhase = useDoughStore(s => s.togglePhase);
+  const yeastType = useDoughStore(s => s.state.yeastType);
   const result = useCalculation();
+
+  const isSourdough = yeastType === 'madre' || yeastType === 'licoli';
 
   // AUTO switch (per biga/poolish): toggle locale, non persistito
   const [autoEnabled, setAutoEnabled] = useState<Record<string, boolean>>({});
@@ -56,6 +59,8 @@ export function FermentationPhases() {
           const isPrefermento = PREFERMENTI.includes(phase.id);
           const isAutoOn = autoEnabled[phase.id] ?? false;
           const tAmb = autoAmbientTemp[phase.id] ?? 20;
+          // Biga disabilitata quando si usa madre/licoli (biga = solo LdB per definizione)
+          const isBigaDisabled = phase.id === 'biga' && isSourdough;
 
           return (
             <div key={phase.id}>
@@ -64,9 +69,11 @@ export function FermentationPhases() {
               )}
 
               <div className={`rounded-xl p-3 border transition-all ${
-                phase.active
-                  ? 'border-current/15 ' + phaseColor(phase.id)
-                  : 'border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/30 opacity-50'
+                isBigaDisabled
+                  ? 'border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/30 opacity-40'
+                  : phase.active
+                    ? 'border-current/15 ' + phaseColor(phase.id)
+                    : 'border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/30 opacity-50'
               }`}>
                 {/* Header fase */}
                 <div className="flex items-center justify-between mb-3">
@@ -79,7 +86,7 @@ export function FermentationPhases() {
                       <span className="text-xs opacity-60">⏸ riposo</span>
                     )}
                   </div>
-                  {!phase.locked && (
+                  {!phase.locked && !isBigaDisabled && (
                     <button
                       onClick={() => togglePhase(phase.id)}
                       className={`text-xs px-2 py-0.5 rounded-full border font-medium transition-colors flex-shrink-0 ${
@@ -93,7 +100,14 @@ export function FermentationPhases() {
                   )}
                 </div>
 
-                {phase.active && (
+                {/* Nota biga disabilitata */}
+                {isBigaDisabled && (
+                  <p className="text-xs text-neutral-400 dark:text-neutral-500 italic">
+                    Richiede lievito di birra fresco — non compatibile con Madre/Li.Co.Li
+                  </p>
+                )}
+
+                {phase.active && !isBigaDisabled && (
                   <div className="flex flex-col gap-3">
 
                     {/* Slider Ore — nascosto in AUTO mode per prefermenti */}
