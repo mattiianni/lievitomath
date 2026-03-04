@@ -18,21 +18,22 @@ export function q10Factor(tempC: number): number {
  * Coefficienti di fase k:
  *   puntata (bulk):  k = 1.0
  *   frigo LdB:       k = 0.2
- *   frigo LM:        k = 0.7 (il lievito nel LM rallenta al freddo come il LdB; k leggermente
- *                             superiore per la presenza di lieviti selvatici più resistenti al freddo)
+ *   frigo LM:        k = -0.1 (a 4°C il LM quasi si ferma; i LAB continuano ad acidificare → inibiscono
+ *                              il lievito → k negativo: il frigo AUMENTA il LM necessario)
  *   appretto:        k = 0.6
  *
  * Calibrazione LM (YEAST_FACTORS.sourdough = 80):
- *   senza frigo (2h+4h): F≈4.1 → ~20% LM  (professionale: 20-30%)
- *   16h frigo:           F≈6.9 → ~12% LM  (professionale:  8-15%)
- *   24h frigo:           F≈8.3 → ~10% LM  (professionale:  5-10%)
+ *   senza frigo (2h+4h):           F≈4.1 → ~20% LM
+ *   con 16h frigo + 4h appretto:   F≈3.7 → ~22% LM  (frigo aumenta LM ✓)
+ *   con 24h frigo + 4h appretto:   F≈3.5 → ~23% LM
+ *   con 48h frigo + 4h appretto:   F≈2.9 → ~28% LM
  */
 export function cumulativeFermentation(phases: FermentationPhase[], yeastType?: YeastType): number {
   return phases
     .filter(p => p.active && p.hours > 0)
     .reduce((sum, phase) => {
-      // LM in frigo: lieviti selvatici leggermente più resistenti al freddo del LdB, ma k non molto diverso
-      const effectiveK = (yeastType === 'sourdough' && phase.k === 0.2) ? 0.7 : phase.k;
+      // LM in frigo: quasi fermo + LAB acidificano → inibiscono lievito → k negativo → serve più LM
+      const effectiveK = (yeastType === 'sourdough' && phase.k === 0.2) ? -0.1 : phase.k;
       return sum + phase.hours * q10Factor(phase.temperatureCelsius) * effectiveK;
     }, 0);
 }
