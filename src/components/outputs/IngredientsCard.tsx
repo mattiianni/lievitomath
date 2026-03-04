@@ -12,7 +12,6 @@ const MODE_NAME: Record<string, string> = {
 
 export function IngredientsCard() {
   const result = useCalculation();
-  const yeastType = useDoughStore(s => s.state.yeastType);
   const mode = useDoughStore(s => s.state.mode);
   const state = useDoughStore(s => s.state);
   const userFlourBanner = useDoughStore(s => s.userFlourBanner);
@@ -33,16 +32,18 @@ export function IngredientsCard() {
     );
   }
 
-  const { ingredients, yeastPercent, totalDoughWeight, prefermentiSplit } = result;
+  const { ingredients, yeastPercent, totalDoughWeight, prefermentiSplit, effectiveYeastType, flourWeight } = result;
+
+  const isSourdoughDirect = !prefermentiSplit && (effectiveYeastType === 'madre' || effectiveYeastType === 'licoli');
 
   const rows = [
-    { label: 'Farina totale',       value: ingredients.flour, unit: 'g', bold: true },
+    { label: isSourdoughDirect ? 'Farina' : 'Farina totale', value: ingredients.flour, unit: 'g', bold: true },
     { label: 'Acqua',               value: ingredients.water, unit: 'g', bold: false },
     { label: 'Sale',                value: ingredients.salt,  unit: 'g', bold: false },
     ...(mode !== 'pane' && ingredients.oil > 0
       ? [{ label: 'Olio EVO',       value: ingredients.oil,   unit: 'g', bold: false }]
       : []),
-    { label: yeastTypeLabel(yeastType), value: ingredients.yeast, unit: 'g', bold: true, accent: true },
+    { label: yeastTypeLabel(effectiveYeastType), value: ingredients.yeast, unit: 'g', bold: true, accent: true },
   ];
 
   function handlePrint() {
@@ -110,7 +111,7 @@ export function IngredientsCard() {
                   <td style="padding:4px 4px; text-align:right; font-size:14px; font-weight:700;">${prefermentiSplit.prefermento.water}<span style="font-size:11px; font-weight:400; color:#888;">g</span></td>
                 </tr>
                 <tr>
-                  <td style="padding:4px 4px; font-weight:700; color:#ea580c;">${yeastTypeLabel(yeastType)}</td>
+                  <td style="padding:4px 4px; font-weight:700; color:#ea580c;">${yeastTypeLabel(effectiveYeastType)}</td>
                   <td style="padding:4px 4px; text-align:right; font-size:14px; font-weight:700; color:#ea580c;">${prefermentiSplit.prefermento.yeast}<span style="font-size:11px; font-weight:400; color:#888;">g</span></td>
                 </tr>
                 <tr style="border-top:2px solid rgba(0,0,0,0.1);">
@@ -165,7 +166,7 @@ export function IngredientsCard() {
             </table>
           `}
           <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:8px 12px; margin-top:10px; font-size:12px; color:#9a3412;">
-            % lievito: <strong>${prefermentiSplit ? (yeastPercent / (prefermentiSplit.prefermento.flourPercent / 100)).toFixed(2) + '% su farina ' + prefermentiSplit.prefermento.type + ' · ' + yeastPercent.toFixed(3) + '% su farina totale' : yeastPercent.toFixed(3) + '% sulla farina'}</strong> · ${yeastTypeLabel(yeastType)}
+            % lievito: <strong>${prefermentiSplit ? (yeastPercent / (prefermentiSplit.prefermento.flourPercent / 100)).toFixed(2) + '% su farina ' + prefermentiSplit.prefermento.type + ' · ' + yeastPercent.toFixed(3) + '% su farina totale' : yeastPercent.toFixed(3) + '% sulla farina'}</strong> · ${yeastTypeLabel(effectiveYeastType)}
           </div>
         </div>
 
@@ -258,7 +259,7 @@ export function IngredientsCard() {
               {[
                 { label: 'Farina', value: prefermentiSplit.prefermento.flour, unit: 'g', sub: `${prefermentiSplit.prefermento.flourPercent}% del totale` },
                 { label: 'Acqua',  value: prefermentiSplit.prefermento.water,  unit: 'g', sub: `idro ${prefermentiSplit.prefermento.hydration}%` },
-                { label: yeastTypeLabel(yeastType), value: prefermentiSplit.prefermento.yeast, unit: 'g', sub: null },
+                { label: yeastTypeLabel(effectiveYeastType), value: prefermentiSplit.prefermento.yeast, unit: 'g', sub: null },
               ].map(r => (
                 <div key={r.label} className="flex items-center justify-between py-1 border-b border-current/10 last:border-0">
                   <div>
@@ -344,6 +345,8 @@ export function IngredientsCard() {
       <div className="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-xs text-neutral-500 mb-3">
         {prefermentiSplit ? (
           <>% lievito: <strong>{(yeastPercent / (prefermentiSplit.prefermento.flourPercent / 100)).toFixed(2)}%</strong> su farina {prefermentiSplit.prefermento.type} · <span className="opacity-70">{yeastPercent.toFixed(3)}% su farina totale</span></>
+        ) : isSourdoughDirect ? (
+          <>% starter: <strong>{yeastPercent.toFixed(1)}%</strong> sulla farina totale · farina totale (incl. nello starter): <strong>{Math.round(flourWeight)}g</strong></>
         ) : (
           <>% lievito: <strong>{yeastPercent.toFixed(3)}%</strong> sulla farina</>
         )}

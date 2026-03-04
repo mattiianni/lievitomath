@@ -23,6 +23,7 @@ export interface WBlendResult {
 }
 
 import type { PrefermentiSplit } from '../engine/dough';
+import type { YeastType } from './dough';
 
 export interface CalculationResult {
   ingredients: IngredientWeights;
@@ -33,4 +34,5 @@ export interface CalculationResult {
   flourWeight: number;
   cumulativeF: number; // utile per debug/display
   prefermentiSplit: PrefermentiSplit | null;
+  effectiveYeastType: YeastType; // tipo usato per il calcolo (biga forza 'fresh')
 }

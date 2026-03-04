@@ -1,6 +1,6 @@
 export type DoughMode = 'napoletana' | 'teglia' | 'pane';
 
-export type YeastType = 'fresh' | 'instant_dry' | 'sourdough';
+export type YeastType = 'fresh' | 'instant_dry' | 'madre' | 'licoli';
 
 export interface Flour {
   id: string;

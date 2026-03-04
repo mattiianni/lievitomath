@@ -18,30 +18,35 @@ export function q10Factor(tempC: number): number {
  * Coefficienti di fase k:
  *   puntata (bulk):  k = 1.0
  *   frigo LdB:       k = 0.2
- *   frigo LM:        k = -0.1 (a 4°C il LM quasi si ferma; i LAB continuano ad acidificare → inibiscono
- *                              il lievito → k negativo: il frigo AUMENTA il LM necessario)
+ *   frigo LM/Licoli: k = -0.1 (a 4°C il LM quasi si ferma; i LAB continuano ad acidificare → inibiscono
+ *                               il lievito → k negativo: il frigo AUMENTA il LM/Licoli necessario)
  *   appretto:        k = 0.6
  *
- * Calibrazione LM (YEAST_FACTORS.sourdough = 80):
- *   senza frigo (2h+4h):           F≈4.1 → ~20% LM
- *   con 16h frigo + 4h appretto:   F≈3.7 → ~22% LM  (frigo aumenta LM ✓)
- *   con 24h frigo + 4h appretto:   F≈3.5 → ~23% LM
- *   con 48h frigo + 4h appretto:   F≈2.9 → ~28% LM
+ * Calibrazione (YEAST_FACTORS.madre = 80, licoli = 107):
+ *   senza frigo (2h+4h):           F≈4.1 → madre ~19.5% | licoli ~26.1%
+ *   con 16h frigo + 4h appretto:   F≈3.7 → madre ~21.6% | licoli ~28.9%  (frigo aumenta ✓)
+ *   con 24h frigo + 4h appretto:   F≈3.5 → madre ~22.9% | licoli ~30.6%
+ *   con 48h frigo + 4h appretto:   F≈2.9 → madre ~27.6% | licoli ~36.9%
  */
 export function cumulativeFermentation(phases: FermentationPhase[], yeastType?: YeastType): number {
   return phases
     .filter(p => p.active && p.hours > 0)
     .reduce((sum, phase) => {
-      // LM in frigo: quasi fermo + LAB acidificano → inibiscono lievito → k negativo → serve più LM
-      const effectiveK = (yeastType === 'sourdough' && phase.k === 0.2) ? -0.1 : phase.k;
+      const isSourdough = yeastType === 'madre' || yeastType === 'licoli';
+      // LM/Licoli in frigo: quasi fermo + LAB acidificano → inibiscono lievito → k negativo → serve più starter
+      const effectiveK = (isSourdough && phase.k === 0.2) ? -0.1 : phase.k;
       return sum + phase.hours * q10Factor(phase.temperatureCelsius) * effectiveK;
     }, 0);
 }
 
 /**
- * Da fermentazione cumulativa F → percentuale lievito sul peso farina.
+ * Da fermentazione cumulativa F → percentuale lievito/starter sul peso FARINA TOTALE.
  * Relazione inversa: più lunga la fermentazione, meno lievito serve.
  * BASE_DOSE = 1.0% lievito fresco per F=1
+ *
+ * Madre (50% idratazione): fattore 80 → ~19% per fermentazione standard
+ * Licoli (100% idratazione): fattore 107 → ~25% per fermentazione standard
+ *   (rapporto 107/80 ≈ 1.333 = 2/1.5 = idratazione netta per grammo)
  */
 export function yeastPercentFromFermentation(
   cumulativeF: number,
@@ -49,14 +54,16 @@ export function yeastPercentFromFermentation(
 ): number {
   const YEAST_FACTORS: Record<YeastType, number> = {
     fresh: 1.0,
-    instant_dry: 0.33,  // IDY è ~3× più potente del fresco
-    sourdough: 80.0,    // lievito madre: tipicamente 10-25% sulla farina
+    instant_dry: 0.33,   // IDY è ~3× più potente del fresco
+    madre: 80.0,          // lievito madre 50%: tipicamente 15-25% sulla farina
+    licoli: 107.0,        // Li.Co.Li 100%: ~1.33× madre (meno concentrato)
   };
 
   const CLAMP: Record<YeastType, [number, number]> = {
     fresh: [0.04, 3.0],
     instant_dry: [0.015, 1.0],
-    sourdough: [3.0, 50.0],  // min 3%: fermentazioni molto lunghe (48h+) possono usare meno
+    madre: [3.0, 50.0],   // min 3%: fermentazioni molto lunghe (48h+)
+    licoli: [4.0, 65.0],  // min 4%: proporzionale a 3% × 1.333
   };
 
   const BASE_DOSE = 1.0;
@@ -71,6 +78,7 @@ export function yeastTypeLabel(type: YeastType): string {
   switch (type) {
     case 'fresh':       return 'Lievito di birra fresco';
     case 'instant_dry': return 'Lievito secco istantaneo (IDY)';
-    case 'sourdough':   return 'Lievito madre / Li.Co.Li';
+    case 'madre':       return 'Lievito madre (idro 50%)';
+    case 'licoli':      return 'Li.Co.Li (idro 100%)';
   }
 }

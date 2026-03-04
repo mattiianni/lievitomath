@@ -21,7 +21,7 @@ export function useCalculation(): CalculationResult | null {
     );
 
     // cumulativeFermentation include biga/poolish (k=1.0) se attivi — usato per WBlend
-    // Passa yeastType per applicare k_frigo corretto (sourdough ≠ lievito di birra)
+    // Passa yeastType per applicare k_frigo corretto (madre/licoli ≠ lievito di birra)
     const cumulativeF = cumulativeFermentation(state.phases, state.yeastType);
 
     // ── Calibrazione lievito ────────────────────────────────────────────────
@@ -35,7 +35,6 @@ export function useCalculation(): CalculationResult | null {
     //   F_POOLISH_REF = 12 × q10(20) ≈ 9.09
     //   yeastCalcF = F_poolish / (F_POOLISH_REF × flourPct × 0.3)
     //   check: 9.09/(9.09×0.30×0.3) = 11.11 → 1/11.11 = 0.09% tot = 0.3% su poolish ✓
-    //   LM poolish: con sourdough factor=60 → (1/11.11)×60 = 5.4% tot = 18% su poolish ✓
     const F_BIGA_REF    = 18 * Math.pow(2, (18 - 24) / 10); // ≈ 11.88
     const F_POOLISH_REF = 12 * Math.pow(2, (20 - 24) / 10); // ≈ 9.09
 
@@ -50,7 +49,15 @@ export function useCalculation(): CalculationResult | null {
           / (F_POOLISH_REF * ((prefermentiPhase.flourPercent ?? 30) / 100) * 0.3)
       : cumulativeF;
     const yeastPercent = yeastPercentFromFermentation(yeastCalcF, effectiveYeastType);
-    const ingredients = calculateIngredients(state, yeastPercent);
+
+    // starterHydration: solo per metodo diretto (senza biga/poolish attiva) con madre/licoli
+    // La biga/poolish gestisce già la propria idratazione internamente.
+    const starterHydration: number | null =
+      prefermentiPhase ? null :
+      effectiveYeastType === 'madre'  ? 50  :
+      effectiveYeastType === 'licoli' ? 100 : null;
+
+    const ingredients = calculateIngredients(state, yeastPercent, starterHydration);
     const hydrationStatus = getHydrationStatus(state.hydration, state.mode);
     const wBlend = calcWBlend(state.flours, state.mode, cumulativeF);
 
@@ -73,6 +80,7 @@ export function useCalculation(): CalculationResult | null {
       flourWeight: ingredients.flourWeight,
       cumulativeF,
       prefermentiSplit,
+      effectiveYeastType,
     };
   }, [state]);
 }
