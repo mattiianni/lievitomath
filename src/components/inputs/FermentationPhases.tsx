@@ -266,6 +266,41 @@ export function FermentationPhases() {
                         {' '}— {phase.hours}h prima
                       </div>
                     )}
+
+                    {/* ── Avviso riscaldamento post-frigo (solo appretto) ── */}
+                    {phase.id === 'appretto' && (() => {
+                      const frigoP = phases.find(p => p.id === 'frigo');
+                      if (!frigoP?.active) return null;
+
+                      const T_fridge  = frigoP.temperatureCelsius;
+                      const T_amb     = phase.temperatureCelsius;
+                      const T_target  = 14;   // °C minima per impasto lavorabile
+                      const lambda    = 0.5;  // costante termica empirica per panetto pizza
+
+                      if (T_fridge >= T_target) return null;
+
+                      const T_after = T_amb + (T_fridge - T_amb) * Math.exp(-lambda * phase.hours);
+                      if (T_after >= T_target) return null;
+
+                      const T_afterRnd = Math.round(T_after);
+                      let minHoursStr = '';
+                      if (T_amb > T_target) {
+                        const minH = (1 / lambda) * Math.log((T_amb - T_fridge) / (T_amb - T_target));
+                        minHoursStr = formatHours(minH);
+                      }
+
+                      return (
+                        <div className="rounded-lg border border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+                          <span className="font-bold">⚠️ Impasto ancora freddo!</span>{' '}
+                          Dopo {formatHours(phase.hours)} a {T_amb}°C l'impasto sarà
+                          ancora a ~<strong>{T_afterRnd}°C</strong> (uscito dal frigo a {T_fridge}°C).
+                          {minHoursStr
+                            ? <> Si consigliano almeno <strong>{minHoursStr}</strong> a {T_amb}°C.</>
+                            : <> La temperatura ambiente è troppo bassa — porta l'impasto in un luogo più caldo.</>
+                          }
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

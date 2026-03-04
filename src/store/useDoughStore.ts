@@ -1,12 +1,10 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { DoughState, DoughMode, YeastType, Flour, FermentationPhase } from '../types/dough';
-import { getDefaultState, PREFERMENTO_PHASES } from '../constants/modes';
+import { getDefaultState } from '../constants/modes';
 
 interface DoughStore {
   state: DoughState;
 
-  // Transient UI state (not persisted)
   userFlourBanner: string | null;
   setUserFlourBanner: (msg: string | null) => void;
 
@@ -31,151 +29,112 @@ interface DoughStore {
   resetToMode: (mode: DoughMode) => void;
 }
 
-export const useDoughStore = create<DoughStore>()(
-  persist(
-    (set) => ({
-      state: getDefaultState('napoletana'),
-      userFlourBanner: null,
+export const useDoughStore = create<DoughStore>()((set) => ({
+  state: getDefaultState('napoletana'),
+  userFlourBanner: null,
 
-      setUserFlourBanner: (msg) => set(() => ({ userFlourBanner: msg })),
+  setUserFlourBanner: (msg) => set(() => ({ userFlourBanner: msg })),
 
-      setMode: (mode) => set(s => ({ state: { ...s.state, mode } })),
-      setPieces: (pieces) => set(s => ({ state: { ...s.state, pieces } })),
-      setWeightPerPiece: (w) => set(s => ({ state: { ...s.state, weightPerPiece: w } })),
-      setHydration: (h) => set(s => ({ state: { ...s.state, hydration: h } })),
-      setSalt: (salt) => set(s => ({ state: { ...s.state, salt } })),
-      setOil: (oil) => set(s => ({ state: { ...s.state, oil } })),
-      setYeastType: (yeastType) => set(s => ({ state: { ...s.state, yeastType } })),
-      setStaglioImmediato: (v) => set(s => ({ state: { ...s.state, staglioImmediato: v } })),
+  setMode: (mode) => set(s => ({ state: { ...s.state, mode } })),
+  setPieces: (pieces) => set(s => ({ state: { ...s.state, pieces } })),
+  setWeightPerPiece: (w) => set(s => ({ state: { ...s.state, weightPerPiece: w } })),
+  setHydration: (h) => set(s => ({ state: { ...s.state, hydration: h } })),
+  setSalt: (salt) => set(s => ({ state: { ...s.state, salt } })),
+  setOil: (oil) => set(s => ({ state: { ...s.state, oil } })),
+  setYeastType: (yeastType) => set(s => ({ state: { ...s.state, yeastType } })),
+  setStaglioImmediato: (v) => set(s => ({ state: { ...s.state, staglioImmediato: v } })),
 
-      updatePhase: (id, changes) =>
-        set(s => ({
-          state: {
-            ...s.state,
-            phases: s.state.phases.map(p => p.id === id ? { ...p, ...changes } : p),
-          },
-        })),
-
-      togglePhase: (id) =>
-        set(s => {
-          const PREFERMENTI = ['biga', 'poolish'];
-          const phases = s.state.phases.map(p => {
-            if (p.id === id && !p.locked) return { ...p, active: !p.active };
-            // mutua esclusione: attivare un prefermento disattiva l'altro
-            if (PREFERMENTI.includes(id) && PREFERMENTI.includes(p.id) && p.id !== id)
-              return { ...p, active: false };
-            return p;
-          });
-          return { state: { ...s.state, phases } };
-        }),
-
-      addFlour: () =>
-        set(s => {
-          const existing = s.state.flours;
-          const newFlour: Flour = {
-            id: crypto.randomUUID(),
-            brand: '',
-            name: 'Nuova farina',
-            w: 260,
-            percentage: 0,
-          };
-          const count = existing.length + 1;
-          const flours = [...existing, newFlour].map(f => ({
-            ...f,
-            percentage: Math.round(100 / count),
-          }));
-          const total = flours.reduce((s, f) => s + f.percentage, 0);
-          flours[flours.length - 1].percentage += 100 - total;
-          return { state: { ...s.state, flours } };
-        }),
-
-      updateFlour: (id, changes) =>
-        set(s => ({
-          state: {
-            ...s.state,
-            flours: s.state.flours.map(f => f.id === id ? { ...f, ...changes } : f),
-          },
-        })),
-
-      removeFlour: (id) =>
-        set(s => {
-          const flours = s.state.flours.filter(f => f.id !== id);
-          if (flours.length === 0) return s;
-          const total = flours.reduce((sum, f) => sum + f.percentage, 0);
-          if (total === 0) {
-            const eq = Math.round(100 / flours.length);
-            const normalized = flours.map((f, i) =>
-              i === flours.length - 1
-                ? { ...f, percentage: 100 - eq * (flours.length - 1) }
-                : { ...f, percentage: eq }
-            );
-            return { state: { ...s.state, flours: normalized } };
-          }
-          const normalized = flours.map(f => ({
-            ...f,
-            percentage: Math.round((f.percentage / total) * 100),
-          }));
-          const diff = 100 - normalized.reduce((sum, f) => sum + f.percentage, 0);
-          normalized[normalized.length - 1].percentage += diff;
-          return { state: { ...s.state, flours: normalized } };
-        }),
-
-      setFlours: (newFlours) =>
-        set(s => ({
-          state: {
-            ...s.state,
-            flours: newFlours.map(f => ({ ...f, id: crypto.randomUUID() })),
-          },
-        })),
-
-      normalizeFlourPercentages: () =>
-        set(s => {
-          const flours = s.state.flours;
-          if (flours.length === 0) return s;
-          const eq = Math.round(100 / flours.length);
-          const normalized = flours.map((f, i) =>
-            i === flours.length - 1
-              ? { ...f, percentage: 100 - eq * (flours.length - 1) }
-              : { ...f, percentage: eq }
-          );
-          return { state: { ...s.state, flours: normalized } };
-        }),
-
-      resetToMode: (mode) => set(() => ({ state: getDefaultState(mode) })),
-    }),
-    {
-      name: 'lievitomath-state',
-      version: 4,
-      migrate: (persisted: unknown, version: number) => {
-        let s = persisted as { state: DoughState };
-        if (version < 2) {
-          // Aggiunge biga/poolish in testa alle phases se non già presenti
-          const existingIds = new Set(s.state.phases.map(p => p.id));
-          const newPhases = [
-            ...PREFERMENTO_PHASES.filter(p => !existingIds.has(p.id)).map(p => ({ ...p })),
-            ...s.state.phases,
-          ];
-          s = { state: { ...s.state, phases: newPhases } };
-        }
-        if (version < 3) {
-          // Aggiunge hydrationPercent a biga/poolish se mancante
-          const phases = s.state.phases.map(p => {
-            if (p.id === 'biga'    && p.hydrationPercent == null) return { ...p, hydrationPercent: 44 };
-            if (p.id === 'poolish' && p.hydrationPercent == null) return { ...p, hydrationPercent: 100 };
-            return p;
-          });
-          s = { state: { ...s.state, phases } };
-        }
-        if (version < 4) {
-          // Migra 'riposo' → 'appretto' nella teglia; aggiunge staglioImmediato
-          const phases = s.state.phases.map(p =>
-            p.id === 'riposo' ? { ...p, id: 'appretto', label: 'Appretto' } : p
-          );
-          s = { state: { ...s.state, phases, staglioImmediato: s.state.staglioImmediato ?? false } };
-        }
-        return s;
+  updatePhase: (id, changes) =>
+    set(s => ({
+      state: {
+        ...s.state,
+        phases: s.state.phases.map(p => p.id === id ? { ...p, ...changes } : p),
       },
-      partialize: (s) => ({ state: s.state }),
-    }
-  )
-);
+    })),
+
+  togglePhase: (id) =>
+    set(s => {
+      const PREFERMENTI = ['biga', 'poolish'];
+      const phases = s.state.phases.map(p => {
+        if (p.id === id && !p.locked) return { ...p, active: !p.active };
+        if (PREFERMENTI.includes(id) && PREFERMENTI.includes(p.id) && p.id !== id)
+          return { ...p, active: false };
+        return p;
+      });
+      return { state: { ...s.state, phases } };
+    }),
+
+  addFlour: () =>
+    set(s => {
+      const existing = s.state.flours;
+      const newFlour: Flour = {
+        id: crypto.randomUUID(),
+        brand: '',
+        name: 'Nuova farina',
+        w: 260,
+        percentage: 0,
+      };
+      const count = existing.length + 1;
+      const flours = [...existing, newFlour].map(f => ({
+        ...f,
+        percentage: Math.round(100 / count),
+      }));
+      const total = flours.reduce((s, f) => s + f.percentage, 0);
+      flours[flours.length - 1].percentage += 100 - total;
+      return { state: { ...s.state, flours } };
+    }),
+
+  updateFlour: (id, changes) =>
+    set(s => ({
+      state: {
+        ...s.state,
+        flours: s.state.flours.map(f => f.id === id ? { ...f, ...changes } : f),
+      },
+    })),
+
+  removeFlour: (id) =>
+    set(s => {
+      const flours = s.state.flours.filter(f => f.id !== id);
+      if (flours.length === 0) return s;
+      const total = flours.reduce((sum, f) => sum + f.percentage, 0);
+      if (total === 0) {
+        const eq = Math.round(100 / flours.length);
+        const normalized = flours.map((f, i) =>
+          i === flours.length - 1
+            ? { ...f, percentage: 100 - eq * (flours.length - 1) }
+            : { ...f, percentage: eq }
+        );
+        return { state: { ...s.state, flours: normalized } };
+      }
+      const normalized = flours.map(f => ({
+        ...f,
+        percentage: Math.round((f.percentage / total) * 100),
+      }));
+      const diff = 100 - normalized.reduce((sum, f) => sum + f.percentage, 0);
+      normalized[normalized.length - 1].percentage += diff;
+      return { state: { ...s.state, flours: normalized } };
+    }),
+
+  setFlours: (newFlours) =>
+    set(s => ({
+      state: {
+        ...s.state,
+        flours: newFlours.map(f => ({ ...f, id: crypto.randomUUID() })),
+      },
+    })),
+
+  normalizeFlourPercentages: () =>
+    set(s => {
+      const flours = s.state.flours;
+      if (flours.length === 0) return s;
+      const eq = Math.round(100 / flours.length);
+      const normalized = flours.map((f, i) =>
+        i === flours.length - 1
+          ? { ...f, percentage: 100 - eq * (flours.length - 1) }
+          : { ...f, percentage: eq }
+      );
+      return { state: { ...s.state, flours: normalized } };
+    }),
+
+  resetToMode: (mode) => set(() => ({ state: getDefaultState(mode) })),
+}));
