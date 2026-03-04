@@ -150,7 +150,8 @@ export function FermentationPhases() {
                       </div>
                     )}
 
-                    {/* Slider Temperatura */}
+                    {/* Slider Temperatura — nascosto per prefermenti quando AUTO è ON */}
+                    {(!isPrefermento || !isAutoOn) && (
                     <div>
                       <label className="text-xs font-medium opacity-80 mb-1 block">
                         {isPrefermento ? 'Temperatura ricetta' : 'Temperatura'}
@@ -168,12 +169,16 @@ export function FermentationPhases() {
                         <span className="text-sm font-bold w-10 text-right">{phase.temperatureCelsius}°C</span>
                       </div>
                     </div>
+                    )}
 
                     {/* Slider extra — solo biga/poolish */}
                     {isPrefermento && (
                       <>
                         <div>
-                          <label className="text-xs font-medium opacity-80 mb-1 block">% farina nel blend</label>
+                          <label className="text-xs font-medium opacity-80 mb-1 block">
+                            % farina nel blend
+                            <span className="opacity-50 font-normal ml-1">({phase.id === 'poolish' ? '30%' : '40%'} tipico)</span>
+                          </label>
                           <div className="flex items-center gap-2">
                             <input
                               type="range"
@@ -191,7 +196,10 @@ export function FermentationPhases() {
                         </div>
 
                         <div>
-                          <label className="text-xs font-medium opacity-80 mb-1 block">Idratazione</label>
+                          <label className="text-xs font-medium opacity-80 mb-1 block">
+                            Idratazione
+                            <span className="opacity-50 font-normal ml-1">({phase.id === 'poolish' ? '100%' : '44%'} tipico)</span>
+                          </label>
                           <div className="flex items-center gap-2">
                             <input
                               type="range"
