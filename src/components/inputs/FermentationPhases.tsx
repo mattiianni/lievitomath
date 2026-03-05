@@ -263,18 +263,18 @@ export function FermentationPhases() {
 
                       const T_fridge  = frigoP.temperatureCelsius;
                       const T_amb     = phase.temperatureCelsius;
-                      const T_target  = 16;   // °C minima per impasto lavorabile
-                      const lambda    = 0.25; // τ≈4h empirico per panetto pizza 200-300g
+                      const T_target  = T_amb - 1; // tornare a temperatura ambiente (tolleranza 1°C)
+                      const k         = 0.5; // h⁻¹ empirico per pallina in contenitore in aria
 
                       if (T_fridge >= T_target) return null;
 
-                      const T_after = T_amb + (T_fridge - T_amb) * Math.exp(-lambda * phase.hours);
+                      const T_after = T_amb + (T_fridge - T_amb) * Math.exp(-k * phase.hours);
                       if (T_after >= T_target) return null;
 
                       const T_afterRnd = Math.round(T_after);
                       let minHoursStr = '';
                       if (T_amb > T_target) {
-                        const minH = (1 / lambda) * Math.log((T_amb - T_fridge) / (T_amb - T_target));
+                        const minH = (1 / k) * Math.log((T_amb - T_fridge) / (T_amb - T_target));
                         minHoursStr = formatHours(minH);
                       }
 
