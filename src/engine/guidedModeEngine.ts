@@ -42,7 +42,7 @@ const APPRETTO_FRIGO_BASE: Record<DoughMode, number> = { napoletana: 4, teglia: 
  * → t_min = -ln((T_amb - T_target) / (T_amb - T_frigo)) / k
  *
  * Target: T_amb - 1°C (praticamente temperatura ambiente, tolleranza 1°C)
- * k = 1.0 h⁻¹  (empirico per pallina/pagnotta 250-800g a temperatura ambiente)
+ * k = 0.5 h⁻¹  (empirico per pallina/pagnotta in contenitore in aria; k=1.0 era troppo ottimistico)
  *
  * Restituisce anche la temperatura prevista a fine appretto per il display.
  */
@@ -50,7 +50,7 @@ export function calcApprettoAfterFrigo(
   ambientTemp: number,
   baseApprettoH: number,
   fridgeTemp = 4,
-  k = 1.0
+  k = 0.5
 ): { apprettoH: number; exitTempC: number } {
   // L'impasto deve tornare a temperatura ambiente (tolleranza 1°C)
   const targetTemp = ambientTemp - 1;
