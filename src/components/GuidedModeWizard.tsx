@@ -40,6 +40,7 @@ interface WizardAnswers {
   yeastMain: YeastMain | null;
   yeastSub: 'madre' | 'licoli';
   usesFridge: boolean | null;
+  staglioAFreddo: boolean | null;
   prefermento: PrefOpt | null;
   totalHours: number;
 }
@@ -47,7 +48,7 @@ interface WizardAnswers {
 const INITIAL_ANSWERS: WizardAnswers = {
   mode: null, pieces: 4, ambientTemp: 22,
   yeastMain: null, yeastSub: 'madre',
-  usesFridge: null, prefermento: null, totalHours: 24,
+  usesFridge: null, staglioAFreddo: null, prefermento: null, totalHours: 24,
 };
 
 function getYeastType(a: WizardAnswers): YeastType {
@@ -116,13 +117,12 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
     }
   }, [step]);
 
-  // Avanza allo step n, con eventuali aggiornamenti alle risposte
   const advance = (n: number, patch: Partial<WizardAnswers>) => {
     setAnswers(prev => ({ ...prev, ...patch }));
     setStep(n);
   };
 
-  // Torna ad uno step precedente, azzerando le risposte successive
+  // Torna allo step n, azzerando le risposte successive
   const goBack = (n: number) => {
     setResult(null);
     setAnswers(prev => {
@@ -131,8 +131,9 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
       if (n <= 2) { a.pieces = a.mode ? DEFAULT_PIECES[a.mode] : 4; }
       if (n <= 3) { a.ambientTemp = 22; }
       if (n <= 4) { a.yeastMain = null; }
-      if (n <= 5) { a.usesFridge = null; }
-      if (n <= 6) { a.prefermento = null; }
+      if (n <= 5) { a.usesFridge = null; a.staglioAFreddo = null; a.prefermento = null; }
+      if (n <= 6) { a.staglioAFreddo = null; a.prefermento = null; }
+      if (n <= 7) { a.prefermento = null; }
       return a;
     });
     setStep(n);
@@ -140,16 +141,17 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
 
   const handleCalculate = () => {
     const params: GuidedParams = {
-      mode:        answers.mode!,
-      pieces:      answers.pieces,
-      ambientTemp: answers.ambientTemp,
-      yeastType:   getYeastType(answers),
-      usesFridge:  answers.usesFridge!,
-      prefermento: answers.prefermento!,
-      totalHours:  answers.totalHours,
+      mode:          answers.mode!,
+      pieces:        answers.pieces,
+      ambientTemp:   answers.ambientTemp,
+      yeastType:     getYeastType(answers),
+      usesFridge:    answers.usesFridge!,
+      staglioAFreddo: answers.staglioAFreddo === true,
+      prefermento:   answers.prefermento!,
+      totalHours:    answers.totalHours,
     };
     setResult(calculateGuided(params));
-    setStep(8);
+    setStep(9);
   };
 
   // Popola lo store avanzato con un unico aggiornamento atomico
@@ -194,7 +196,7 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
 
   const isSourdoughSelected = answers.yeastMain === 'naturale';
 
-  if (result && step === 8) {
+  if (result && step === 9) {
     return (
       <GuidedResult
         result={result}
@@ -340,11 +342,11 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
           onEdit={() => goBack(5)}>
           <div className="flex flex-col gap-3">
             {[
-              { val: true,  emoji: '✅', label: 'Sì, uso il frigo',         sub: 'Lievitazione più lenta e saporita' },
-              { val: false, emoji: '❌', label: 'No, solo a temperatura',   sub: 'Più rapido, gestione più semplice' },
+              { val: true,  emoji: '✅', label: 'Sì, uso il frigo',       sub: 'Lievitazione più lenta e saporita' },
+              { val: false, emoji: '❌', label: 'No, solo a temperatura', sub: 'Più rapido, gestione più semplice' },
             ].map(opt => (
               <button key={String(opt.val)}
-                onClick={() => advance(6, { usesFridge: opt.val })}
+                onClick={() => advance(opt.val ? 6 : 7, { usesFridge: opt.val, staglioAFreddo: opt.val ? null : false })}
                 className="flex items-center gap-4 p-4 rounded-xl border-2 border-transparent bg-gray-50 dark:bg-[#0A1228]/60 hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all text-left">
                 <span className="text-2xl">{opt.emoji}</span>
                 <div>
@@ -357,17 +359,51 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
         </StepCard>
       )}
 
-      {/* ⑥ PREFERMENTO */}
-      {step >= 6 && (
-        <StepCard n={6} title="Vuoi usare un prefermento?" done={step > 6}
-          doneLabel={PREF_OPTS.find(p => p.id === answers.prefermento)?.emoji + ' ' + PREF_OPTS.find(p => p.id === answers.prefermento)?.label}
+      {/* ⑥ STAGLIO TIMING (solo se frigo = sì) */}
+      {step >= 6 && answers.usesFridge && (
+        <StepCard n={6} title="Quando fai lo staglio?" done={step > 6}
+          doneLabel={answers.staglioAFreddo ? '🧆 Panetti in frigo' : '🫗 Massa in frigo'}
           onEdit={() => goBack(6)}>
+          <div className="flex flex-col gap-3">
+            {[
+              {
+                val: false,
+                emoji: '🫗',
+                label: 'Staglio dopo il frigo',
+                sub: 'La massa intera va in frigo. Staglio e appretto lungo all\'uscita.',
+              },
+              {
+                val: true,
+                emoji: '🧆',
+                label: 'Staglio prima del frigo',
+                sub: 'Formi i panetti, poi vanno in frigo. Appretto breve all\'uscita.',
+              },
+            ].map(opt => (
+              <button key={String(opt.val)}
+                onClick={() => advance(7, { staglioAFreddo: opt.val })}
+                className="flex items-center gap-4 p-4 rounded-xl border-2 border-transparent bg-gray-50 dark:bg-[#0A1228]/60 hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all text-left">
+                <span className="text-2xl">{opt.emoji}</span>
+                <div>
+                  <div className="font-semibold text-sm text-gray-900 dark:text-white">{opt.label}</div>
+                  <div className="text-xs text-gray-400">{opt.sub}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </StepCard>
+      )}
+
+      {/* ⑦ PREFERMENTO */}
+      {step >= 7 && (
+        <StepCard n={7} title="Vuoi usare un prefermento?" done={step > 7}
+          doneLabel={PREF_OPTS.find(p => p.id === answers.prefermento)?.emoji + ' ' + PREF_OPTS.find(p => p.id === answers.prefermento)?.label}
+          onEdit={() => goBack(7)}>
           <div className="flex flex-col gap-2">
             {PREF_OPTS.map(p => {
               const disabled = p.id === 'biga' && isSourdoughSelected;
               return (
                 <button key={p.id} disabled={disabled}
-                  onClick={() => !disabled && advance(7, { prefermento: p.id as PrefOpt })}
+                  onClick={() => !disabled && advance(8, { prefermento: p.id as PrefOpt })}
                   className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
                     disabled
                       ? 'opacity-35 cursor-not-allowed border-transparent bg-gray-50 dark:bg-[#0A1228]/40'
@@ -387,9 +423,9 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
         </StepCard>
       )}
 
-      {/* ⑦ QUANTE ORE */}
-      {step >= 7 && (
-        <StepCard n={7} title="Quante ore hai a disposizione?" done={false}>
+      {/* ⑧ QUANTE ORE */}
+      {step >= 8 && (
+        <StepCard n={8} title="Quante ore hai a disposizione?" done={false}>
           <div className="text-center mb-4">
             <span className="text-4xl font-bold text-brand-500">{answers.totalHours}h</span>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{hoursLabel(answers.totalHours)}</p>

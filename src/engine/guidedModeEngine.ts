@@ -12,6 +12,7 @@ export interface GuidedParams {
   ambientTemp: number;
   yeastType: YeastType;
   usesFridge: boolean;
+  staglioAFreddo: boolean; // true = panetti in frigo (staglio prima); false = massa in frigo (staglio dopo)
   prefermento: 'none' | 'biga' | 'poolish';
   totalHours: number;
 }
@@ -33,6 +34,9 @@ const APPRETTO_NO_FRIGO: Record<DoughMode, number> = { napoletana: 4, teglia: 3,
 const APPRETTO_PREF:     Record<DoughMode, number> = { napoletana: 4, teglia: 3, pane: 2 };
 // Appretto minimo di partenza per calcolo con frigo (poi può essere esteso dalla formula)
 const APPRETTO_FRIGO_BASE: Record<DoughMode, number> = { napoletana: 4, teglia: 4, pane: 3 };
+
+// Appretto fisso per "panetti in frigo" (staglio PRIMA del frigo): già formati, appretto breve
+const APPRETTO_PANETTI_FRIGO: Record<DoughMode, number> = { napoletana: 4, teglia: 3, pane: 2 };
 
 /**
  * Calcola il tempo di appretto necessario affinché l'impasto torni a temperatura
@@ -76,7 +80,7 @@ export function calcApprettoAfterFrigo(
 }
 
 export function suggestPhases(params: GuidedParams): FermentationPhase[] {
-  const { mode, ambientTemp, yeastType, usesFridge, prefermento, totalHours } = params;
+  const { mode, ambientTemp, yeastType, usesFridge, staglioAFreddo, prefermento, totalHours } = params;
   const isSourdough = yeastType === 'madre' || yeastType === 'licoli';
   const phases: FermentationPhase[] = [];
 
@@ -108,8 +112,22 @@ export function suggestPhases(params: GuidedParams): FermentationPhase[] {
       phases.push({ id: 'puntata', label: 'Puntata', hours: puntataH, temperatureCelsius: ambientTemp, k: 1.0, active: true });
     phases.push({ id: 'appretto', label: 'Appretto', hours: appH,    temperatureCelsius: ambientTemp,        k: 0.6, active: true, locked: true });
 
+  } else if (usesFridge && staglioAFreddo) {
+    // Panetti in frigo: staglio PRIMA del frigo → appretto fisso breve
+    const appH    = APPRETTO_PANETTI_FRIGO[mode];
+    const puntataH = PUNTATA_FRIGO[mode];
+    const frigoH   = totalHours - puntataH - appH;
+
+    if (frigoH > 0) {
+      phases.push({ id: 'puntata', label: 'Puntata', hours: puntataH, temperatureCelsius: ambientTemp, k: 1.0, active: true });
+      phases.push({ id: 'frigo',   label: 'Frigo',   hours: frigoH,   temperatureCelsius: 4,            k: 0.2, active: true });
+    } else {
+      phases.push({ id: 'puntata', label: 'Puntata', hours: Math.max(1, totalHours - appH), temperatureCelsius: ambientTemp, k: 1.0, active: true });
+    }
+    phases.push({ id: 'appretto', label: 'Appretto', hours: appH, temperatureCelsius: ambientTemp, k: 0.6, active: true, locked: true });
+
   } else if (usesFridge) {
-    // L'appretto è calcolato per far tornare l'impasto a temperatura ambiente
+    // Massa in frigo: l'appretto è calcolato per far tornare l'impasto a temperatura ambiente
     const { apprettoH: appH } = calcApprettoAfterFrigo(ambientTemp, APPRETTO_FRIGO_BASE[mode]);
     const puntataH = PUNTATA_FRIGO[mode]; // 2h per tutti i modi
     const frigoH   = totalHours - puntataH - appH;
@@ -158,10 +176,11 @@ export interface GuidedResult {
   yeastType: YeastType;
   effectiveYeastType: YeastType;
   exitTempC: number | null;  // temperatura prevista impasto a fine appretto (solo frigo diretto)
+  staglioAFreddo: boolean;
 }
 
 export function calculateGuided(params: GuidedParams): GuidedResult {
-  const { mode, pieces, yeastType, usesFridge, prefermento, ambientTemp } = params;
+  const { mode, pieces, yeastType, usesFridge, staglioAFreddo, prefermento, ambientTemp } = params;
   const { weightPerPiece, hydration, salt, oil } = MODE_DEFAULTS[mode];
 
   const phases      = suggestPhases(params);
@@ -208,14 +227,20 @@ export function calculateGuided(params: GuidedParams): GuidedResult {
   // Calcola temperatura di uscita (solo caso diretto con frigo)
   let exitTempC: number | null = null;
   if (usesFridge && prefermento === 'none') {
-    const { exitTempC: t } = calcApprettoAfterFrigo(ambientTemp, APPRETTO_FRIGO_BASE[mode]);
-    exitTempC = t;
+    if (staglioAFreddo) {
+      // Panetti già formati: k leggermente più alto (più superficie), appretto fisso
+      const { exitTempC: t } = calcApprettoAfterFrigo(ambientTemp, APPRETTO_PANETTI_FRIGO[mode], 4, 0.6);
+      exitTempC = t;
+    } else {
+      const { exitTempC: t } = calcApprettoAfterFrigo(ambientTemp, APPRETTO_FRIGO_BASE[mode]);
+      exitTempC = t;
+    }
   }
 
   return {
     ingredients, yeastPercent, cumulativeF, phases,
     suggestedFlour, targetW, prefermentiSplit,
     mode, pieces, weightPerPiece, hydration, salt, oil,
-    yeastType, effectiveYeastType, exitTempC,
+    yeastType, effectiveYeastType, exitTempC, staglioAFreddo,
   };
 }
