@@ -22,43 +22,79 @@ const MODE_DEFAULTS: Record<DoughMode, { weightPerPiece: number; hydration: numb
   pane:       { weightPerPiece: 800, hydration: 70, salt: 2.2, oil: 0 },
 };
 
-const T_APPRETTO: Record<DoughMode, number> = { napoletana: 22, teglia: 22, pane: 24 };
+// T_APPRETTO rimosso: l'appretto avviene a temperatura ambiente (ambientTemp)
 
-// ── Valori fissi per fase (professionali, non percentuale) ──────────────────
+// Puntata fuori frigo prima dell'ingresso in cella (standard professionale)
+const PUNTATA_FRIGO: Record<DoughMode, number> = { napoletana: 2, teglia: 2, pane: 2 };
 
-// Puntata fuori frigo: valori standard da disciplinare
-const PUNTATA_FRIGO:    Record<DoughMode, number> = { napoletana: 2, teglia: 1, pane: 2 };
-
-// Appretto minimo con frigo: l'impasto freddo ha bisogno di più tempo per tornare in temperatura
-const APPRETTO_FRIGO:    Record<DoughMode, number> = { napoletana: 4, teglia: 4, pane: 3 };
-// Appretto senza frigo: l'impasto è già a temperatura ambiente
+// Appretto base senza frigo (impasto già a temperatura ambiente)
 const APPRETTO_NO_FRIGO: Record<DoughMode, number> = { napoletana: 4, teglia: 3, pane: 2 };
-// Appretto dopo prefermento (biga/poolish): impasto a T amb, meno tempo necessario
+// Appretto base dopo prefermento (biga/poolish, impasto a T amb)
 const APPRETTO_PREF:     Record<DoughMode, number> = { napoletana: 4, teglia: 3, pane: 2 };
+// Appretto minimo di partenza per calcolo con frigo (poi può essere esteso dalla formula)
+const APPRETTO_FRIGO_BASE: Record<DoughMode, number> = { napoletana: 4, teglia: 4, pane: 3 };
+
+/**
+ * Calcola il tempo di appretto necessario affinché l'impasto torni a temperatura
+ * ambiente dopo il frigo, usando la legge di Newton del raffreddamento.
+ *
+ * Formula inversa: T(t) = T_amb - (T_amb - T_frigo) × exp(-k × t)
+ * → t_min = -ln((T_amb - T_target) / (T_amb - T_frigo)) / k
+ *
+ * Target: T_amb - 1°C (praticamente temperatura ambiente, tolleranza 1°C)
+ * k = 1.0 h⁻¹  (empirico per pallina/pagnotta 250-800g a temperatura ambiente)
+ *
+ * Restituisce anche la temperatura prevista a fine appretto per il display.
+ */
+export function calcApprettoAfterFrigo(
+  ambientTemp: number,
+  baseApprettoH: number,
+  fridgeTemp = 4,
+  k = 1.0
+): { apprettoH: number; exitTempC: number } {
+  // L'impasto deve tornare a temperatura ambiente (tolleranza 1°C)
+  const targetTemp = ambientTemp - 1;
+
+  let tMin = 0;
+  const deltaAmb   = ambientTemp - fridgeTemp;
+  const deltaTarget = ambientTemp - targetTemp;
+
+  if (deltaAmb > 0 && deltaTarget > 0 && deltaTarget < deltaAmb) {
+    tMin = -Math.log(deltaTarget / deltaAmb) / k;
+  }
+
+  // Arrotonda a mezz'ora superiore + 0.5h buffer per la lievitazione dell'appretto
+  const tMinRounded = Math.ceil((tMin + 0.5) * 2) / 2;
+  const apprettoH   = Math.max(baseApprettoH, tMinRounded);
+
+  // Temperatura prevista a fine appretto
+  const exitTempC = Math.round(
+    (ambientTemp - deltaAmb * Math.exp(-k * apprettoH)) * 10
+  ) / 10;
+
+  return { apprettoH, exitTempC };
+}
 
 export function suggestPhases(params: GuidedParams): FermentationPhase[] {
   const { mode, ambientTemp, yeastType, usesFridge, prefermento, totalHours } = params;
   const isSourdough = yeastType === 'madre' || yeastType === 'licoli';
-  const tApp        = T_APPRETTO[mode];
   const phases: FermentationPhase[] = [];
 
   if (prefermento === 'biga' && !isSourdough) {
-    // ── BIGA (Giorilli): max 18h @ 18°C ────────────────────────────────────
-    const appH     = APPRETTO_PREF[mode];
-    const puntMin  = 1;
-    let bigaH      = Math.min(totalHours - appH - puntMin, 18);
-    bigaH          = Math.max(bigaH, 4);
-    let puntataH   = totalHours - bigaH - appH;
+    const appH    = APPRETTO_PREF[mode];
+    const puntMin = 1;
+    let bigaH     = Math.min(totalHours - appH - puntMin, 18);
+    bigaH         = Math.max(bigaH, 4);
+    let puntataH  = totalHours - bigaH - appH;
     if (puntataH < puntMin) { bigaH -= (puntMin - puntataH); puntataH = puntMin; }
     puntataH = Math.max(puntataH, 0);
 
-    phases.push({ id: 'biga',    label: 'Biga',    hours: bigaH,    temperatureCelsius: 18,       k: 1.0, active: true, flourPercent: 40, hydrationPercent: 44 });
+    phases.push({ id: 'biga',    label: 'Biga',    hours: bigaH,    temperatureCelsius: 18,          k: 1.0, active: true, flourPercent: 40, hydrationPercent: 44 });
     if (puntataH > 0)
       phases.push({ id: 'puntata', label: 'Puntata', hours: puntataH, temperatureCelsius: ambientTemp, k: 1.0, active: true });
-    phases.push({ id: 'appretto', label: 'Appretto', hours: appH,    temperatureCelsius: tApp,     k: 0.6, active: true, locked: true });
+    phases.push({ id: 'appretto', label: 'Appretto', hours: appH,    temperatureCelsius: ambientTemp,        k: 0.6, active: true, locked: true });
 
   } else if (prefermento === 'poolish') {
-    // ── POOLISH: max 12h @ 20°C ─────────────────────────────────────────────
     const appH    = APPRETTO_PREF[mode];
     const puntMin = 1;
     let poolishH  = Math.min(totalHours - appH - puntMin, 12);
@@ -67,33 +103,31 @@ export function suggestPhases(params: GuidedParams): FermentationPhase[] {
     if (puntataH < puntMin) { poolishH -= (puntMin - puntataH); puntataH = puntMin; }
     puntataH = Math.max(puntataH, 0);
 
-    phases.push({ id: 'poolish', label: 'Poolish', hours: poolishH, temperatureCelsius: 20,         k: 1.0, active: true, flourPercent: 30, hydrationPercent: 100 });
+    phases.push({ id: 'poolish', label: 'Poolish', hours: poolishH, temperatureCelsius: 20,          k: 1.0, active: true, flourPercent: 30, hydrationPercent: 100 });
     if (puntataH > 0)
       phases.push({ id: 'puntata', label: 'Puntata', hours: puntataH, temperatureCelsius: ambientTemp, k: 1.0, active: true });
-    phases.push({ id: 'appretto', label: 'Appretto', hours: appH,    temperatureCelsius: tApp,       k: 0.6, active: true, locked: true });
+    phases.push({ id: 'appretto', label: 'Appretto', hours: appH,    temperatureCelsius: ambientTemp,        k: 0.6, active: true, locked: true });
 
   } else if (usesFridge) {
-    // ── DIRETTO + FRIGO: puntata fissa, frigo = resto, appretto standard ────
-    const appH     = APPRETTO_FRIGO[mode];    // 4h napoletana+teglia, 3h pane
-    const puntataH = PUNTATA_FRIGO[mode];     // 2h napoletana+pane, 1h teglia
+    // L'appretto è calcolato per far tornare l'impasto a temperatura ambiente
+    const { apprettoH: appH } = calcApprettoAfterFrigo(ambientTemp, APPRETTO_FRIGO_BASE[mode]);
+    const puntataH = PUNTATA_FRIGO[mode]; // 2h per tutti i modi
     const frigoH   = totalHours - puntataH - appH;
 
     if (frigoH > 0) {
       phases.push({ id: 'puntata', label: 'Puntata', hours: puntataH, temperatureCelsius: ambientTemp, k: 1.0, active: true });
       phases.push({ id: 'frigo',   label: 'Frigo',   hours: frigoH,   temperatureCelsius: 4,            k: 0.2, active: true });
     } else {
-      // Non abbastanza ore per il frigo: fallback a diretto
-      const puntH2 = Math.max(1, totalHours - APPRETTO_NO_FRIGO[mode]);
-      phases.push({ id: 'puntata', label: 'Puntata', hours: puntH2, temperatureCelsius: ambientTemp, k: 1.0, active: true });
+      // Ore insufficienti per frigo: fallback a diretto
+      phases.push({ id: 'puntata', label: 'Puntata', hours: Math.max(1, totalHours - APPRETTO_NO_FRIGO[mode]), temperatureCelsius: ambientTemp, k: 1.0, active: true });
     }
-    phases.push({ id: 'appretto', label: 'Appretto', hours: appH, temperatureCelsius: tApp, k: 0.6, active: true, locked: true });
+    phases.push({ id: 'appretto', label: 'Appretto', hours: appH, temperatureCelsius: ambientTemp, k: 0.6, active: true, locked: true });
 
   } else {
-    // ── DIRETTO SENZA FRIGO: tutto a temperatura ambiente ───────────────────
-    const appH    = APPRETTO_NO_FRIGO[mode]; // 4h napoletana, 3h teglia, 2h pane
+    const appH     = APPRETTO_NO_FRIGO[mode];
     const puntataH = Math.max(1, totalHours - appH);
     phases.push({ id: 'puntata',  label: 'Puntata',  hours: puntataH, temperatureCelsius: ambientTemp, k: 1.0, active: true });
-    phases.push({ id: 'appretto', label: 'Appretto', hours: appH,     temperatureCelsius: tApp,         k: 0.6, active: true, locked: true });
+    phases.push({ id: 'appretto', label: 'Appretto', hours: appH,     temperatureCelsius: ambientTemp,         k: 0.6, active: true, locked: true });
   }
 
   return phases;
@@ -123,10 +157,11 @@ export interface GuidedResult {
   oil: number;
   yeastType: YeastType;
   effectiveYeastType: YeastType;
+  exitTempC: number | null;  // temperatura prevista impasto a fine appretto (solo frigo diretto)
 }
 
 export function calculateGuided(params: GuidedParams): GuidedResult {
-  const { mode, pieces, yeastType } = params;
+  const { mode, pieces, yeastType, usesFridge, prefermento, ambientTemp } = params;
   const { weightPerPiece, hydration, salt, oil } = MODE_DEFAULTS[mode];
 
   const phases      = suggestPhases(params);
@@ -135,8 +170,8 @@ export function calculateGuided(params: GuidedParams): GuidedResult {
   const prefPhase        = phases.find(p => (p.id === 'biga' || p.id === 'poolish') && p.active);
   const effectiveYeastType: YeastType = prefPhase?.id === 'biga' ? 'fresh' : yeastType;
 
-  const F_BIGA_REF    = 18 * Math.pow(2, (18 - 24) / 10); // ≈ 11.88
-  const F_POOLISH_REF = 12 * Math.pow(2, (20 - 24) / 10); // ≈ 9.09
+  const F_BIGA_REF    = 18 * Math.pow(2, (18 - 24) / 10);
+  const F_POOLISH_REF = 12 * Math.pow(2, (20 - 24) / 10);
 
   let yeastCalcF: number;
   if (prefPhase) {
@@ -170,10 +205,17 @@ export function calculateGuided(params: GuidedParams): GuidedResult {
   const suggestedFlour = suggestFlour(mode, cumulativeF);
   const targetW        = getTargetW(mode, cumulativeF);
 
+  // Calcola temperatura di uscita (solo caso diretto con frigo)
+  let exitTempC: number | null = null;
+  if (usesFridge && prefermento === 'none') {
+    const { exitTempC: t } = calcApprettoAfterFrigo(ambientTemp, APPRETTO_FRIGO_BASE[mode]);
+    exitTempC = t;
+  }
+
   return {
     ingredients, yeastPercent, cumulativeF, phases,
     suggestedFlour, targetW, prefermentiSplit,
     mode, pieces, weightPerPiece, hydration, salt, oil,
-    yeastType, effectiveYeastType,
+    yeastType, effectiveYeastType, exitTempC,
   };
 }
