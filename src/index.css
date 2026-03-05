@@ -72,6 +72,7 @@ input[type="range"]::-moz-range-thumb {
 .print-only { display: none; }
 
 @media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   .print-hidden { display: none !important; }
   .print-only   { display: block !important; }
 

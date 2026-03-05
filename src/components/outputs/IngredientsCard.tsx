@@ -76,9 +76,9 @@ export function IngredientsCard() {
       <div style="font-family:'Inter',sans-serif; max-width:100%; margin:0 auto; color:#1a1a1a; font-size:11px;">
 
         <!-- HEADER -->
-        <div style="background:linear-gradient(135deg,#ea580c,#f97316); border-radius:10px; padding:12px 16px; margin-bottom:14px; color:white;">
+        <div style="background:linear-gradient(135deg,#ea580c,#f97316); border-radius:10px; padding:12px 16px; margin-bottom:14px; color:white; print-color-adjust:exact; -webkit-print-color-adjust:exact;">
           <div style="display:flex; align-items:center; justify-content:space-between;">
-            <h1 style="font-family:'Lobster',cursive; font-size:24px; margin:0; letter-spacing:0.5px;">LievitoMath</h1>
+            <h1 style="font-family:'Lobster',cursive; font-size:24px; margin:0; letter-spacing:0.5px; text-shadow:0 1px 3px rgba(0,0,0,0.35);">LievitoMath</h1>
             <div style="text-align:right; font-size:12px; opacity:0.85;">${date}</div>
           </div>
           <div style="margin-top:6px; font-size:13px; font-weight:600;">
