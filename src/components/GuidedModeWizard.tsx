@@ -4,6 +4,7 @@ import { calculateGuided } from '../engine/guidedModeEngine';
 import type { GuidedResult as GResult, GuidedParams } from '../engine/guidedModeEngine';
 import { GuidedResult } from './GuidedResult';
 import { useDoughStore } from '../store/useDoughStore';
+import { getDefaultState } from '../constants/modes';
 
 // ── Dati step ────────────────────────────────────────────────────────────────
 
@@ -43,6 +44,12 @@ interface WizardAnswers {
   totalHours: number;
 }
 
+const INITIAL_ANSWERS: WizardAnswers = {
+  mode: null, pieces: 4, ambientTemp: 22,
+  yeastMain: null, yeastSub: 'madre',
+  usesFridge: null, prefermento: null, totalHours: 24,
+};
+
 function getYeastType(a: WizardAnswers): YeastType {
   if (a.yeastMain === 'naturale') return a.yeastSub;
   return (a.yeastMain ?? 'fresh') as YeastType;
@@ -53,19 +60,9 @@ function getYeastType(a: WizardAnswers): YeastType {
 function StepBadge({ n, done }: { n: number; done: boolean }) {
   return (
     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-colors ${
-      done
-        ? 'bg-emerald-500 text-white'
-        : 'bg-brand-500 text-white'
+      done ? 'bg-emerald-500 text-white' : 'bg-brand-500 text-white'
     }`}>
       {done ? '✓' : n}
-    </div>
-  );
-}
-
-function CompletedChip({ label }: { label: string }) {
-  return (
-    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-[#0A1228]/60 rounded-xl px-4 py-2 flex-1 min-w-0">
-      <span className="truncate">{label}</span>
     </div>
   );
 }
@@ -75,18 +72,24 @@ interface StepCardProps {
   title: string;
   done: boolean;
   doneLabel?: string;
+  onEdit?: () => void;
   children?: React.ReactNode;
 }
 
-function StepCard({ n, title, done, doneLabel, children }: StepCardProps) {
+function StepCard({ n, title, done, doneLabel, onEdit, children }: StepCardProps) {
   return (
     <div className="bg-white/80 dark:bg-[#1C2548]/80 backdrop-blur-sm rounded-2xl shadow-sm border border-white/40 dark:border-[#616B8F]/20 overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-4">
         <StepBadge n={n} done={done} />
         {done ? (
           <>
-            <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">{title}</span>
-            <CompletedChip label={doneLabel ?? ''} />
+            <span className="text-sm font-semibold text-gray-500 dark:text-gray-400 flex-shrink-0">{title}</span>
+            <button
+              onClick={onEdit}
+              className="flex-1 text-left text-sm font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-[#0A1228]/60 rounded-xl px-4 py-2 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors truncate"
+            >
+              {doneLabel} <span className="text-[10px] text-gray-400 ml-1">✏️ modifica</span>
+            </button>
           </>
         ) : (
           <h3 className="text-base font-bold text-gray-900 dark:text-white">{title}</h3>
@@ -105,27 +108,33 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
   const [step, setStep]     = useState(1);
   const [result, setResult] = useState<GResult | null>(null);
   const endRef              = useRef<HTMLDivElement>(null);
+  const [answers, setAnswers] = useState<WizardAnswers>(INITIAL_ANSWERS);
 
-  const [answers, setAnswers] = useState<WizardAnswers>({
-    mode:        null,
-    pieces:      4,
-    ambientTemp: 22,
-    yeastMain:   null,
-    yeastSub:    'madre',
-    usesFridge:  null,
-    prefermento: null,
-    totalHours:  24,
-  });
-
-  // Scroll to bottom when a new step appears
   useEffect(() => {
     if (step > 1) {
       setTimeout(() => endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
     }
   }, [step]);
 
+  // Avanza allo step n, con eventuali aggiornamenti alle risposte
   const advance = (n: number, patch: Partial<WizardAnswers>) => {
     setAnswers(prev => ({ ...prev, ...patch }));
+    setStep(n);
+  };
+
+  // Torna ad uno step precedente, azzerando le risposte successive
+  const goBack = (n: number) => {
+    setResult(null);
+    setAnswers(prev => {
+      const a = { ...prev };
+      if (n <= 1) { a.mode = null; a.pieces = 4; }
+      if (n <= 2) { a.pieces = a.mode ? DEFAULT_PIECES[a.mode] : 4; }
+      if (n <= 3) { a.ambientTemp = 22; }
+      if (n <= 4) { a.yeastMain = null; }
+      if (n <= 5) { a.usesFridge = null; }
+      if (n <= 6) { a.prefermento = null; }
+      return a;
+    });
     setStep(n);
   };
 
@@ -143,36 +152,44 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
     setStep(8);
   };
 
+  // Popola lo store avanzato con un unico aggiornamento atomico
   const handleOpenAdvanced = () => {
     if (!result) return;
-    const store = useDoughStore.getState();
-    store.resetToMode(result.mode);
-    store.setPieces(result.pieces);
-    store.setYeastType(result.yeastType);
-    store.setFlours([{
-      brand:      result.suggestedFlour.brand,
-      name:       result.suggestedFlour.name,
-      w:          result.suggestedFlour.w,
-      percentage: 100,
-    }]);
-    // Disattiva tutte le fasi non locked, poi applica le fasi guidate
-    const allIds = ['biga', 'poolish', 'autolisi', 'puntata', 'frigo', 'appretto'];
-    allIds.forEach(id => store.updatePhase(id, { active: false }));
-    result.phases.forEach(p => store.updatePhase(p.id, { ...p }));
+
+    const defaultState = getDefaultState(result.mode);
+    const guidedMap    = new Map(result.phases.map(p => [p.id, p]));
+    const fullPhases   = defaultState.phases.map(def => {
+      const guided = guidedMap.get(def.id);
+      return guided ? { ...def, ...guided } : { ...def, active: false };
+    });
+
+    useDoughStore.setState({
+      state: {
+        ...defaultState,
+        mode:          result.mode,
+        pieces:        result.pieces,
+        weightPerPiece: result.weightPerPiece,
+        hydration:     result.hydration,
+        salt:          result.salt,
+        oil:           result.oil,
+        yeastType:     result.yeastType,
+        flours: [{
+          id:         crypto.randomUUID(),
+          brand:      result.suggestedFlour.brand,
+          name:       result.suggestedFlour.name,
+          w:          result.suggestedFlour.w,
+          percentage: 100,
+        }],
+        phases: fullPhases,
+      },
+    });
     onClose();
   };
 
-  // Messaggi orari
   const hoursLabel = (h: number) => {
     if (h <= 8)  return `${h}h ⚡ Veloce`;
     if (h <= 36) return `${h}h ✓ Standard`;
     return `${h}h ⭐ Lunga maturazione`;
-  };
-
-  const tempLabel = (t: number) => {
-    if (t <= 18) return `${t}°C ❄️ Fresco`;
-    if (t <= 25) return `${t}°C 🌡️ Tiepido`;
-    return `${t}°C 🔥 Caldo`;
   };
 
   const isSourdoughSelected = answers.yeastMain === 'naturale';
@@ -181,7 +198,7 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
     return (
       <GuidedResult
         result={result}
-        onReset={() => { setResult(null); setStep(1); setAnswers({ mode: null, pieces: 4, ambientTemp: 22, yeastMain: null, yeastSub: 'madre', usesFridge: null, prefermento: null, totalHours: 24 }); }}
+        onReset={() => { setResult(null); setAnswers(INITIAL_ANSWERS); setStep(1); }}
         onOpenAdvanced={handleOpenAdvanced}
       />
     );
@@ -190,7 +207,6 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
   return (
     <div className="flex flex-col gap-3 pb-8">
 
-      {/* Intro */}
       {step === 1 && (
         <div className="text-center py-4">
           <p className="text-white/70 dark:text-white/50 text-sm">Rispondi a qualche domanda e calcolo tutto io 👨‍🍳</p>
@@ -199,13 +215,13 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
 
       {/* ① COSA VUOI FARE */}
       <StepCard n={1} title="Cosa vuoi fare?" done={step > 1}
-        doneLabel={MODES.find(m => m.id === answers.mode)?.emoji + ' ' + MODES.find(m => m.id === answers.mode)?.label}>
+        doneLabel={MODES.find(m => m.id === answers.mode)?.emoji + ' ' + MODES.find(m => m.id === answers.mode)?.label}
+        onEdit={() => goBack(1)}>
         <div className="grid grid-cols-3 gap-3">
           {MODES.map(m => (
             <button key={m.id}
               onClick={() => advance(2, { mode: m.id, pieces: DEFAULT_PIECES[m.id] })}
-              className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-transparent bg-gray-50 dark:bg-[#0A1228]/60 hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all active:scale-95"
-            >
+              className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-transparent bg-gray-50 dark:bg-[#0A1228]/60 hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all active:scale-95">
               <span className="text-4xl">{m.emoji}</span>
               <span className="text-sm font-bold text-gray-900 dark:text-white">{m.label}</span>
               <span className="text-[10px] text-gray-400">{m.sub}</span>
@@ -217,7 +233,8 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
       {/* ② QUANTI PEZZI */}
       {step >= 2 && (
         <StepCard n={2} title="Quanti pezzi?" done={step > 2}
-          doneLabel={`${answers.pieces} ${answers.mode === 'napoletana' ? 'palline' : answers.mode === 'teglia' ? 'teglie' : 'pagnotte'}`}>
+          doneLabel={`${answers.pieces} ${answers.mode === 'napoletana' ? 'palline' : answers.mode === 'teglia' ? 'teglie' : 'pagnotte'}`}
+          onEdit={() => goBack(2)}>
           <div className="flex items-center justify-center gap-6">
             <button onClick={() => setAnswers(a => ({ ...a, pieces: Math.max(1, a.pieces - 1) }))}
               className="w-12 h-12 rounded-full bg-gray-100 dark:bg-[#0A1228] text-gray-700 dark:text-white text-2xl font-bold hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors">−</button>
@@ -235,7 +252,8 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
       {/* ③ TEMPERATURA AMBIENTE */}
       {step >= 3 && (
         <StepCard n={3} title="Temperatura ambiente?" done={step > 3}
-          doneLabel={tempLabel(answers.ambientTemp)}>
+          doneLabel={`${answers.ambientTemp}°C ${answers.ambientTemp <= 18 ? '❄️' : answers.ambientTemp <= 25 ? '🌡️' : '🔥'}`}
+          onEdit={() => goBack(3)}>
           <div className="text-center mb-4">
             <span className="text-4xl font-bold text-brand-500">{answers.ambientTemp}°C</span>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{
@@ -262,9 +280,10 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
         <StepCard n={4} title="Che tipo di lievito usi?" done={step > 4}
           doneLabel={
             answers.yeastMain === 'naturale'
-              ? `🍶 ${answers.yeastSub === 'madre' ? 'Lievito Madre (50%)' : 'Li.Co.Li (100%)'}`
+              ? `🍶 ${answers.yeastSub === 'madre' ? 'Lievito Madre (idro 50%)' : 'Li.Co.Li (idro 100%)'}`
               : YEAST_OPTS.find(y => y.id === answers.yeastMain)?.emoji + ' ' + YEAST_OPTS.find(y => y.id === answers.yeastMain)?.label
-          }>
+          }
+          onEdit={() => goBack(4)}>
           <div className="flex flex-col gap-2">
             {YEAST_OPTS.map(y => (
               <button key={y.id}
@@ -276,8 +295,7 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
                   answers.yeastMain === y.id
                     ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20'
                     : 'border-transparent bg-gray-50 dark:bg-[#0A1228]/60 hover:border-brand-300'
-                }`}
-              >
+                }`}>
                 <span className="text-2xl">{y.emoji}</span>
                 <div>
                   <div className="font-semibold text-sm text-gray-900 dark:text-white">{y.label}</div>
@@ -285,8 +303,6 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
                 </div>
               </button>
             ))}
-
-            {/* Sub-toggle Madre / Licoli */}
             {answers.yeastMain === 'naturale' && (
               <div className="mt-3 flex flex-col gap-2">
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">Tipo di lievito naturale</p>
@@ -301,8 +317,7 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
                         answers.yeastSub === s.id
                           ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20'
                           : 'border-transparent bg-gray-50 dark:bg-[#0A1228]/60'
-                      }`}
-                    >
+                      }`}>
                       <div className="text-sm font-semibold text-gray-900 dark:text-white">{s.label}</div>
                       <div className="text-xs text-gray-400">{s.sub}</div>
                     </button>
@@ -321,16 +336,16 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
       {/* ⑤ FRIGO */}
       {step >= 5 && (
         <StepCard n={5} title="Userai il frigo per la lievitazione?" done={step > 5}
-          doneLabel={answers.usesFridge ? '✅ Sì, frigo' : '❌ No, tutto a temperatura ambiente'}>
+          doneLabel={answers.usesFridge ? '✅ Sì, frigo' : '❌ No, tutto a temperatura ambiente'}
+          onEdit={() => goBack(5)}>
           <div className="flex flex-col gap-3">
             {[
-              { val: true,  emoji: '✅', label: 'Sì, uso il frigo', sub: 'Lievitazione più lenta e saporita' },
-              { val: false, emoji: '❌', label: 'No, solo a temperatura', sub: 'Più rapido, gestione più semplice' },
+              { val: true,  emoji: '✅', label: 'Sì, uso il frigo',         sub: 'Lievitazione più lenta e saporita' },
+              { val: false, emoji: '❌', label: 'No, solo a temperatura',   sub: 'Più rapido, gestione più semplice' },
             ].map(opt => (
               <button key={String(opt.val)}
                 onClick={() => advance(6, { usesFridge: opt.val })}
-                className="flex items-center gap-4 p-4 rounded-xl border-2 border-transparent bg-gray-50 dark:bg-[#0A1228]/60 hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all text-left"
-              >
+                className="flex items-center gap-4 p-4 rounded-xl border-2 border-transparent bg-gray-50 dark:bg-[#0A1228]/60 hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all text-left">
                 <span className="text-2xl">{opt.emoji}</span>
                 <div>
                   <div className="font-semibold text-sm text-gray-900 dark:text-white">{opt.label}</div>
@@ -345,20 +360,19 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
       {/* ⑥ PREFERMENTO */}
       {step >= 6 && (
         <StepCard n={6} title="Vuoi usare un prefermento?" done={step > 6}
-          doneLabel={PREF_OPTS.find(p => p.id === answers.prefermento)?.emoji + ' ' + PREF_OPTS.find(p => p.id === answers.prefermento)?.label}>
+          doneLabel={PREF_OPTS.find(p => p.id === answers.prefermento)?.emoji + ' ' + PREF_OPTS.find(p => p.id === answers.prefermento)?.label}
+          onEdit={() => goBack(6)}>
           <div className="flex flex-col gap-2">
             {PREF_OPTS.map(p => {
               const disabled = p.id === 'biga' && isSourdoughSelected;
               return (
-                <button key={p.id}
-                  disabled={disabled}
+                <button key={p.id} disabled={disabled}
                   onClick={() => !disabled && advance(7, { prefermento: p.id as PrefOpt })}
                   className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
                     disabled
                       ? 'opacity-35 cursor-not-allowed border-transparent bg-gray-50 dark:bg-[#0A1228]/40'
                       : 'border-transparent bg-gray-50 dark:bg-[#0A1228]/60 hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20'
-                  }`}
-                >
+                  }`}>
                   <span className="text-2xl">{p.emoji}</span>
                   <div>
                     <div className="font-semibold text-sm text-gray-900 dark:text-white">{p.label}

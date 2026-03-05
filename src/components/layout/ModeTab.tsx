@@ -12,7 +12,7 @@ export function ModeTab() {
   const resetToMode = useDoughStore(s => s.resetToMode);
 
   return (
-    <div className="flex gap-1 p-1 bg-[#E0D5B6]/60 dark:bg-[#0A1228] rounded-xl">
+    <div className="flex w-full gap-1 p-1 bg-[#E0D5B6]/60 dark:bg-[#0A1228] rounded-xl">
       {MODES.map(m => (
         <button
           key={m.id}
