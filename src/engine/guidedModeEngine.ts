@@ -86,32 +86,66 @@ export function suggestPhases(params: GuidedParams): FermentationPhase[] {
   const phases: FermentationPhase[] = [];
 
   if (prefermento === 'biga' && !isSourdough) {
-    const appH    = APPRETTO_PREF[mode];
-    const puntMin = 1;
-    let bigaH     = Math.min(totalHours - appH - puntMin, 18);
-    bigaH         = Math.max(bigaH, 4);
-    let puntataH  = totalHours - bigaH - appH;
-    if (puntataH < puntMin) { bigaH -= (puntMin - puntataH); puntataH = puntMin; }
-    puntataH = Math.max(puntataH, 0);
+    if (usesFridge) {
+      const { apprettoH: appH } = calcApprettoAfterFrigo(ambientTemp, APPRETTO_FRIGO_BASE[mode]);
+      const puntataH = PUNTATA_FRIGO[mode];
+      let bigaH  = Math.min(totalHours - appH - puntataH, 18);
+      bigaH      = Math.max(bigaH, 4);
+      const frigoH = totalHours - bigaH - puntataH - appH;
 
-    phases.push({ id: 'biga',    label: 'Biga',    hours: bigaH,    temperatureCelsius: 18,          k: 1.0, active: true, flourPercent: 40, hydrationPercent: 44 });
-    if (puntataH > 0)
-      phases.push({ id: 'puntata', label: 'Puntata', hours: puntataH, temperatureCelsius: ambientTemp, k: 1.0, active: true });
-    phases.push({ id: 'appretto', label: 'Appretto', hours: appH,    temperatureCelsius: ambientTemp,        k: 0.6, active: true, locked: true });
+      phases.push({ id: 'biga', label: 'Biga', hours: bigaH, temperatureCelsius: 18, k: 1.0, active: true, flourPercent: 40, hydrationPercent: 44 });
+      if (frigoH > 0) {
+        phases.push({ id: 'puntata', label: 'Puntata', hours: puntataH, temperatureCelsius: ambientTemp, k: 1.0, active: true });
+        phases.push({ id: 'frigo',   label: 'Frigo',   hours: frigoH,   temperatureCelsius: 4,            k: 0.2, active: true });
+      } else {
+        phases.push({ id: 'puntata', label: 'Puntata', hours: Math.max(1, totalHours - bigaH - appH), temperatureCelsius: ambientTemp, k: 1.0, active: true });
+      }
+      phases.push({ id: 'appretto', label: 'Appretto', hours: appH, temperatureCelsius: ambientTemp, k: 0.6, active: true, locked: true });
+    } else {
+      const appH   = APPRETTO_PREF[mode];
+      const puntMin = 1;
+      let bigaH    = Math.min(totalHours - appH - puntMin, 18);
+      bigaH        = Math.max(bigaH, 4);
+      let puntataH = totalHours - bigaH - appH;
+      if (puntataH < puntMin) { bigaH -= (puntMin - puntataH); puntataH = puntMin; }
+      puntataH = Math.max(puntataH, 0);
+
+      phases.push({ id: 'biga',    label: 'Biga',    hours: bigaH,    temperatureCelsius: 18,          k: 1.0, active: true, flourPercent: 40, hydrationPercent: 44 });
+      if (puntataH > 0)
+        phases.push({ id: 'puntata', label: 'Puntata', hours: puntataH, temperatureCelsius: ambientTemp, k: 1.0, active: true });
+      phases.push({ id: 'appretto', label: 'Appretto', hours: appH, temperatureCelsius: ambientTemp, k: 0.6, active: true, locked: true });
+    }
 
   } else if (prefermento === 'poolish') {
-    const appH    = APPRETTO_PREF[mode];
-    const puntMin = 1;
-    let poolishH  = Math.min(totalHours - appH - puntMin, 12);
-    poolishH      = Math.max(poolishH, 2);
-    let puntataH  = totalHours - poolishH - appH;
-    if (puntataH < puntMin) { poolishH -= (puntMin - puntataH); puntataH = puntMin; }
-    puntataH = Math.max(puntataH, 0);
+    if (usesFridge) {
+      const { apprettoH: appH } = calcApprettoAfterFrigo(ambientTemp, APPRETTO_FRIGO_BASE[mode]);
+      const puntataH = PUNTATA_FRIGO[mode];
+      let poolishH = Math.min(totalHours - appH - puntataH, 12);
+      poolishH     = Math.max(poolishH, 2);
+      const frigoH = totalHours - poolishH - puntataH - appH;
 
-    phases.push({ id: 'poolish', label: 'Poolish', hours: poolishH, temperatureCelsius: 20,          k: 1.0, active: true, flourPercent: 30, hydrationPercent: 100 });
-    if (puntataH > 0)
-      phases.push({ id: 'puntata', label: 'Puntata', hours: puntataH, temperatureCelsius: ambientTemp, k: 1.0, active: true });
-    phases.push({ id: 'appretto', label: 'Appretto', hours: appH,    temperatureCelsius: ambientTemp,        k: 0.6, active: true, locked: true });
+      phases.push({ id: 'poolish', label: 'Poolish', hours: poolishH, temperatureCelsius: 20, k: 1.0, active: true, flourPercent: 30, hydrationPercent: 100 });
+      if (frigoH > 0) {
+        phases.push({ id: 'puntata', label: 'Puntata', hours: puntataH, temperatureCelsius: ambientTemp, k: 1.0, active: true });
+        phases.push({ id: 'frigo',   label: 'Frigo',   hours: frigoH,   temperatureCelsius: 4,            k: 0.2, active: true });
+      } else {
+        phases.push({ id: 'puntata', label: 'Puntata', hours: Math.max(1, totalHours - poolishH - appH), temperatureCelsius: ambientTemp, k: 1.0, active: true });
+      }
+      phases.push({ id: 'appretto', label: 'Appretto', hours: appH, temperatureCelsius: ambientTemp, k: 0.6, active: true, locked: true });
+    } else {
+      const appH   = APPRETTO_PREF[mode];
+      const puntMin = 1;
+      let poolishH = Math.min(totalHours - appH - puntMin, 12);
+      poolishH     = Math.max(poolishH, 2);
+      let puntataH = totalHours - poolishH - appH;
+      if (puntataH < puntMin) { poolishH -= (puntMin - puntataH); puntataH = puntMin; }
+      puntataH = Math.max(puntataH, 0);
+
+      phases.push({ id: 'poolish', label: 'Poolish', hours: poolishH, temperatureCelsius: 20, k: 1.0, active: true, flourPercent: 30, hydrationPercent: 100 });
+      if (puntataH > 0)
+        phases.push({ id: 'puntata', label: 'Puntata', hours: puntataH, temperatureCelsius: ambientTemp, k: 1.0, active: true });
+      phases.push({ id: 'appretto', label: 'Appretto', hours: appH, temperatureCelsius: ambientTemp, k: 0.6, active: true, locked: true });
+    }
 
   } else if (usesFridge && staglioAFreddo) {
     // Panetti in frigo: staglio PRIMA del frigo → appretto calcolato con formula (k=0.6, base breve)
@@ -181,7 +215,7 @@ export interface GuidedResult {
 }
 
 export function calculateGuided(params: GuidedParams): GuidedResult {
-  const { mode, pieces, yeastType, usesFridge, staglioAFreddo, prefermento, ambientTemp } = params;
+  const { mode, pieces, yeastType, staglioAFreddo, prefermento, ambientTemp } = params;
   const { weightPerPiece, hydration, salt, oil } = MODE_DEFAULTS[mode];
 
   const phases      = suggestPhases(params);
@@ -225,11 +259,11 @@ export function calculateGuided(params: GuidedParams): GuidedResult {
   const suggestedFlour = suggestFlour(mode, cumulativeF);
   const targetW        = getTargetW(mode, cumulativeF);
 
-  // Calcola temperatura di uscita (solo caso diretto con frigo)
+  // Calcola temperatura di uscita per tutte le combinazioni con frigo attivo
+  const hasActiveFrigo = phases.some(p => p.id === 'frigo' && p.active);
   let exitTempC: number | null = null;
-  if (usesFridge && prefermento === 'none') {
-    if (staglioAFreddo) {
-      // Panetti già formati: k leggermente più alto (più superficie), appretto fisso
+  if (hasActiveFrigo) {
+    if (staglioAFreddo && prefermento === 'none') {
       const { exitTempC: t } = calcApprettoAfterFrigo(ambientTemp, APPRETTO_PANETTI_FRIGO[mode], 4, 0.6);
       exitTempC = t;
     } else {
