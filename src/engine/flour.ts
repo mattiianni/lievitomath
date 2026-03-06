@@ -10,22 +10,26 @@ export function calculateWBlend(flours: Flour[]): number {
 }
 
 export function getTargetW(mode: DoughMode, cumulativeF: number): number {
-  if (mode === 'napoletana') {
-    if (cumulativeF < 5)  return 220;
-    if (cumulativeF < 10) return 260;
-    if (cumulativeF < 18) return 290;
-    return 320;
-  }
-  if (mode === 'teglia') {
-    if (cumulativeF < 8)  return 260;
-    if (cumulativeF < 16) return 300;
-    if (cumulativeF < 24) return 330;
-    return 350;
-  }
-  if (cumulativeF < 10) return 280;
-  if (cumulativeF < 20) return 320;
-  if (cumulativeF < 30) return 350;
-  return 380;
+  // Formula Japi (buonapizza.forumfree.it): ORE = 0.3568 × exp(0.01273 × W)
+  // Inversa: W = ln(F / 0.3568) / 0.01273
+  // cumulativeF è già "ore equivalenti a 24°C" → applicabile direttamente
+  const F = Math.max(cumulativeF, 0.5);
+  const baseW = Math.round(Math.log(F / 0.3568) / 0.01273);
+
+  // Offset per modo: napoletana usa stile più tenace (meno W strutturale),
+  // teglia ad alta idratazione richiede la formula pura
+  const OFFSET: Record<DoughMode, number> = {
+    napoletana: -20,
+    teglia:      0,
+    pane:       -10,
+  };
+  const MIN_W: Record<DoughMode, number> = {
+    napoletana: 200,
+    teglia:     240,
+    pane:       220,
+  };
+
+  return Math.max(baseW + OFFSET[mode], MIN_W[mode]);
 }
 
 export function getWBlendSuggestion(delta: number): string {
