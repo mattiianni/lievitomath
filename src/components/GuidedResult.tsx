@@ -33,7 +33,7 @@ export function GuidedResult({ result, onReset, onOpenAdvanced }: Props) {
   const {
     ingredients, yeastPercent, phases, suggestedFlour, targetW,
     prefermentiSplit, mode, pieces, weightPerPiece, hydration, salt, oil,
-    effectiveYeastType,
+    effectiveYeastType, exitTempC,
   } = result;
 
   const isSourdoughDirect = !prefermentiSplit && (effectiveYeastType === 'madre' || effectiveYeastType === 'licoli');
@@ -54,9 +54,8 @@ export function GuidedResult({ result, onReset, onOpenAdvanced }: Props) {
     if (oil > 0)
       mainRows.push({ label: `── Olio EVO`, value: `${mainDough.oil}g` });
   } else {
-    const flourLabel = isSourdoughDirect ? 'Farina' : 'Farina totale';
     mainRows.push(
-      { label: flourLabel, value: `${ingredients.flour}g` },
+      { label: isSourdoughDirect ? 'Farina' : 'Farina totale', value: `${ingredients.flour}g` },
       { label: 'Acqua', value: `${ingredients.water}g` },
       { label: yeastTypeLabel(effectiveYeastType), value: `${ingredients.yeast}g` },
       { label: 'Sale', value: `${ingredients.salt}g` },
@@ -66,6 +65,9 @@ export function GuidedResult({ result, onReset, onOpenAdvanced }: Props) {
   }
 
   const totalWeight = pieces * weightPerPiece;
+
+  // ≥18°C = minimo per stesura (AVPN: impasto lavorabile; sotto è troppo contratto)
+  const exitTempOk = exitTempC !== null && exitTempC >= 18;
 
   return (
     <div className="flex flex-col gap-4 mt-2">
@@ -126,15 +128,13 @@ export function GuidedResult({ result, onReset, onOpenAdvanced }: Props) {
         <div className="flex gap-0 overflow-x-auto px-5 py-4">
           {phases.map((phase, i) => (
             <div key={i} className="flex items-center gap-0 flex-shrink-0">
-              <div className="flex flex-col items-center gap-1">
-                <div
-                  className="px-3 py-2 rounded-lg text-white text-center shadow-sm"
-                  style={{ backgroundColor: PHASE_COLOR[phase.id] ?? '#616B8F', minWidth: 70 }}
-                >
-                  <div className="text-[11px] font-semibold capitalize">{phase.label}</div>
-                  <div className="text-sm font-bold">{phaseLabel(phase.hours)}</div>
-                  <div className="text-[10px] opacity-80">{phase.temperatureCelsius}°C</div>
-                </div>
+              <div
+                className="px-3 py-2 rounded-lg text-white text-center shadow-sm"
+                style={{ backgroundColor: PHASE_COLOR[phase.id] ?? '#616B8F', minWidth: 70 }}
+              >
+                <div className="text-[11px] font-semibold capitalize">{phase.label}</div>
+                <div className="text-sm font-bold">{phaseLabel(phase.hours)}</div>
+                <div className="text-[10px] opacity-80">{phase.temperatureCelsius}°C</div>
               </div>
               {i < phases.length - 1 && (
                 <div className="w-4 h-0.5 bg-gray-300 dark:bg-gray-600 flex-shrink-0" />
@@ -142,6 +142,25 @@ export function GuidedResult({ result, onReset, onOpenAdvanced }: Props) {
             </div>
           ))}
         </div>
+
+        {/* Temperatura di uscita (solo con frigo) */}
+        {exitTempC !== null && (
+          <div className={`mx-5 mb-4 px-4 py-3 rounded-xl flex items-center gap-3 ${
+            exitTempOk
+              ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800'
+              : 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800'
+          }`}>
+            <span className="text-xl">{exitTempOk ? '✅' : '⚠️'}</span>
+            <div>
+              <p className={`text-xs font-semibold ${exitTempOk ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                Temperatura impasto a fine appretto
+              </p>
+              <p className={`text-sm font-bold ${exitTempOk ? 'text-emerald-800 dark:text-emerald-300' : 'text-amber-800 dark:text-amber-300'}`}>
+                {exitTempC}°C — {exitTempOk ? 'Pronto per la stesura ✓' : 'Troppo freddo per la stesura — aggiungi tempo di appretto'}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Farina suggerita */}

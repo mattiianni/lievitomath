@@ -56,8 +56,9 @@ export function calcApprettoAfterFrigo(
   fridgeTemp = 4,
   k = 0.5
 ): { apprettoH: number; exitTempC: number } {
-  // L'impasto deve tornare a temperatura ambiente (tolleranza 1°C)
-  const targetTemp = ambientTemp - 1;
+  // Target: T_amb - 1°C se ambiente è fresco (≤20°C); cap a 20°C se fa caldo
+  // Sopra 20°C non ha senso aspettare che l'impasto arrivi a piena T_amb
+  const targetTemp = Math.min(ambientTemp - 1, 20);
 
   let tMin = 0;
   const deltaAmb   = ambientTemp - fridgeTemp;
@@ -113,8 +114,8 @@ export function suggestPhases(params: GuidedParams): FermentationPhase[] {
     phases.push({ id: 'appretto', label: 'Appretto', hours: appH,    temperatureCelsius: ambientTemp,        k: 0.6, active: true, locked: true });
 
   } else if (usesFridge && staglioAFreddo) {
-    // Panetti in frigo: staglio PRIMA del frigo → appretto fisso breve
-    const appH    = APPRETTO_PANETTI_FRIGO[mode];
+    // Panetti in frigo: staglio PRIMA del frigo → appretto calcolato con formula (k=0.6, base breve)
+    const { apprettoH: appH } = calcApprettoAfterFrigo(ambientTemp, APPRETTO_PANETTI_FRIGO[mode], 4, 0.6);
     const puntataH = PUNTATA_FRIGO[mode];
     const frigoH   = totalHours - puntataH - appH;
 

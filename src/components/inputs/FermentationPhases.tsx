@@ -263,7 +263,8 @@ export function FermentationPhases() {
 
                       const T_fridge  = frigoP.temperatureCelsius;
                       const T_amb     = phase.temperatureCelsius;
-                      const T_target  = T_amb - 1; // tornare a temperatura ambiente (tolleranza 1°C)
+                      // Target: min(T_amb-1, 20°C) — non ha senso portare l'impasto oltre 20°C
+                      const T_target  = Math.min(T_amb - 1, 20);
                       const k         = 0.5; // h⁻¹ empirico per pallina in contenitore in aria
 
                       if (T_fridge >= T_target) return null;
@@ -284,7 +285,7 @@ export function FermentationPhases() {
                           Dopo {formatHours(phase.hours)} a {T_amb}°C l'impasto sarà
                           ancora a ~<strong>{T_afterRnd}°C</strong> (uscito dal frigo a {T_fridge}°C).
                           {minHoursStr
-                            ? <> Si consigliano almeno <strong>{minHoursStr}</strong> a {T_amb}°C.</>
+                            ? <> Si consigliano almeno <strong>{minHoursStr}</strong> per raggiungere ~{T_target}°C.</>
                             : <> La temperatura ambiente è troppo bassa — porta l'impasto in un luogo più caldo.</>
                           }
                         </div>
