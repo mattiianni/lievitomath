@@ -58,7 +58,7 @@ export function calcApprettoAfterFrigo(
 ): { apprettoH: number; exitTempC: number } {
   // Target: T_amb - 1°C se ambiente è fresco (≤20°C); cap a 20°C se fa caldo
   // Sopra 20°C non ha senso aspettare che l'impasto arrivi a piena T_amb
-  const targetTemp = Math.min(ambientTemp - 1, 20);
+  const targetTemp = Math.min(ambientTemp - 1, 21);
 
   let tMin = 0;
   const deltaAmb   = ambientTemp - fridgeTemp;
