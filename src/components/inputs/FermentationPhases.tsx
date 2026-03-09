@@ -114,40 +114,40 @@ export function FermentationPhases() {
                     {/* Slider Ore — nascosto in AUTO mode per prefermenti */}
                     {(!isPrefermento || !isAutoOn) && (
                       <div>
-                        <label className="text-xs font-medium opacity-80 mb-1 block">
-                          {isPrefermento ? 'Ore di riferimento' : 'Ore'}
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <SliderWithButtons
-                            min={phase.k === 0 ? 0 : 0.5}
-                            max={phase.id === 'frigo' ? 72 : isPrefermento ? 48 : 24}
-                            step={0.5}
-                            value={phase.hours}
-                            onChange={v => updatePhase(phase.id, { hours: v })}
-                            className="h-1.5 rounded appearance-none cursor-pointer accent-current"
-                          />
-                          <span className="text-sm font-bold w-10 text-right">{phase.hours}h</span>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-xs font-medium opacity-80">
+                            {isPrefermento ? 'Ore di riferimento' : 'Ore'}
+                          </label>
+                          <span className="text-sm font-bold">{phase.hours}h</span>
                         </div>
+                        <SliderWithButtons
+                          min={phase.k === 0 ? 0 : 0.5}
+                          max={phase.id === 'frigo' ? 72 : isPrefermento ? 48 : 24}
+                          step={0.5}
+                          value={phase.hours}
+                          onChange={v => updatePhase(phase.id, { hours: v })}
+                          className="h-1.5 rounded appearance-none cursor-pointer accent-current"
+                        />
                       </div>
                     )}
 
                     {/* Slider Temperatura — nascosto per prefermenti quando AUTO è ON */}
                     {(!isPrefermento || !isAutoOn) && (
                     <div>
-                      <label className="text-xs font-medium opacity-80 mb-1 block">
-                        {isPrefermento ? 'Temperatura ricetta' : 'Temperatura'}
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <SliderWithButtons
-                          min={phase.id === 'frigo' ? 2 : 14}
-                          max={phase.id === 'frigo' ? 10 : 32}
-                          step={1}
-                          value={phase.temperatureCelsius}
-                          onChange={v => updatePhase(phase.id, { temperatureCelsius: v })}
-                          className="h-1.5 rounded appearance-none cursor-pointer accent-current"
-                        />
-                        <span className="text-sm font-bold w-10 text-right">{phase.temperatureCelsius}°C</span>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-medium opacity-80">
+                          {isPrefermento ? 'Temperatura ricetta' : 'Temperatura'}
+                        </label>
+                        <span className="text-sm font-bold">{phase.temperatureCelsius}°C</span>
                       </div>
+                      <SliderWithButtons
+                        min={phase.id === 'frigo' ? 2 : 14}
+                        max={phase.id === 'frigo' ? 10 : 32}
+                        step={1}
+                        value={phase.temperatureCelsius}
+                        onChange={v => updatePhase(phase.id, { temperatureCelsius: v })}
+                        className="h-1.5 rounded appearance-none cursor-pointer accent-current"
+                      />
                     </div>
                     )}
 
@@ -155,43 +155,43 @@ export function FermentationPhases() {
                     {isPrefermento && (
                       <>
                         <div>
-                          <label className="text-xs font-medium opacity-80 mb-1 block">
-                            % farina nel blend
-                            <span className="opacity-50 font-normal ml-1">({phase.id === 'poolish' ? '30%' : '40%'} tipico)</span>
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <SliderWithButtons
-                              min={20}
-                              max={phase.id === 'poolish' ? 40 : 70}
-                              step={5}
-                              value={phase.flourPercent ?? (phase.id === 'poolish' ? 30 : 40)}
-                              onChange={v => updatePhase(phase.id, { flourPercent: v })}
-                              className="h-1.5 rounded appearance-none cursor-pointer accent-current"
-                            />
-                            <span className="text-sm font-bold w-10 text-right">
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-xs font-medium opacity-80">
+                              % farina nel blend
+                              <span className="opacity-50 font-normal ml-1">({phase.id === 'poolish' ? '30%' : '40%'} tipico)</span>
+                            </label>
+                            <span className="text-sm font-bold">
                               {phase.flourPercent ?? (phase.id === 'poolish' ? 30 : 40)}%
                             </span>
                           </div>
+                          <SliderWithButtons
+                            min={20}
+                            max={phase.id === 'poolish' ? 40 : 70}
+                            step={5}
+                            value={phase.flourPercent ?? (phase.id === 'poolish' ? 30 : 40)}
+                            onChange={v => updatePhase(phase.id, { flourPercent: v })}
+                            className="h-1.5 rounded appearance-none cursor-pointer accent-current"
+                          />
                         </div>
 
                         <div>
-                          <label className="text-xs font-medium opacity-80 mb-1 block">
-                            Idratazione
-                            <span className="opacity-50 font-normal ml-1">({phase.id === 'poolish' ? '100%' : '44%'} tipico)</span>
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <SliderWithButtons
-                              min={phase.id === 'poolish' ? 80 : 40}
-                              max={phase.id === 'poolish' ? 100 : 60}
-                              step={phase.id === 'poolish' ? 5 : 2}
-                              value={phase.hydrationPercent ?? (phase.id === 'poolish' ? 100 : 44)}
-                              onChange={v => updatePhase(phase.id, { hydrationPercent: v })}
-                              className="h-1.5 rounded appearance-none cursor-pointer accent-current"
-                            />
-                            <span className="text-sm font-bold w-10 text-right">
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-xs font-medium opacity-80">
+                              Idratazione
+                              <span className="opacity-50 font-normal ml-1">({phase.id === 'poolish' ? '100%' : '44%'} tipico)</span>
+                            </label>
+                            <span className="text-sm font-bold">
                               {phase.hydrationPercent ?? (phase.id === 'poolish' ? 100 : 44)}%
                             </span>
                           </div>
+                          <SliderWithButtons
+                            min={phase.id === 'poolish' ? 80 : 40}
+                            max={phase.id === 'poolish' ? 100 : 60}
+                            step={phase.id === 'poolish' ? 5 : 2}
+                            value={phase.hydrationPercent ?? (phase.id === 'poolish' ? 100 : 44)}
+                            onChange={v => updatePhase(phase.id, { hydrationPercent: v })}
+                            className="h-1.5 rounded appearance-none cursor-pointer accent-current"
+                          />
                         </div>
 
                         {/* ── Toggle AUTO ── */}
@@ -218,15 +218,17 @@ export function FermentationPhases() {
                                 Riferimento: {phase.hours}h @{phase.temperatureCelsius}°C
                                 {' '}→ F={( phase.hours * q10Factor(phase.temperatureCelsius) * phase.k).toFixed(2)}
                               </div>
-                              <label className="text-xs font-medium opacity-80 mb-1 block">T ambiente</label>
-                              <div className="flex items-center gap-2 mb-2">
+                              <div className="flex items-center justify-between mb-1">
+                                <label className="text-xs font-medium opacity-80">T ambiente</label>
+                                <span className="text-sm font-bold">{tAmb}°C</span>
+                              </div>
+                              <div className="mb-2">
                                 <SliderWithButtons
                                   min={14} max={30} step={1}
                                   value={tAmb}
                                   onChange={v => setAutoAmbientTemp(prev => ({ ...prev, [phase.id]: v }))}
                                   className="h-1.5 rounded appearance-none cursor-pointer accent-current"
                                 />
-                                <span className="text-sm font-bold w-10 text-right">{tAmb}°C</span>
                               </div>
                               <div className="text-sm font-bold">
                                 {(() => {
