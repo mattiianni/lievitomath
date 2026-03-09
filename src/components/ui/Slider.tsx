@@ -1,3 +1,5 @@
+import { SliderWithButtons } from './SliderWithButtons';
+
 interface SliderProps {
   label: string;
   value: number;
@@ -24,19 +26,7 @@ export function Slider({ label, value, onChange, min, max, step = 1, unit, displ
           {displayValue ?? value}{unit}
         </span>
       </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={e => onChange(parseFloat(e.target.value))}
-        className="w-full"
-      />
-      <div className="flex justify-between text-xs text-neutral-400">
-        <span>{min}{unit}</span>
-        <span>{max}{unit}</span>
-      </div>
+      <SliderWithButtons min={min} max={max} step={step} value={value} onChange={onChange} />
     </div>
   );
 }

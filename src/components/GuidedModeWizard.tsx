@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { SliderWithButtons } from './ui/SliderWithButtons';
 import type { DoughMode, YeastType } from '../types/dough';
 import { calculateGuided } from '../engine/guidedModeEngine';
 import type { GuidedResult as GResult, GuidedParams } from '../engine/guidedModeEngine';
@@ -264,10 +265,10 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
               : '🔥 Caldo — attenzione alla fermentazione!'
             }</p>
           </div>
-          <input type="range" min={15} max={35} step={1}
+          <SliderWithButtons min={15} max={35} step={1}
             value={answers.ambientTemp}
-            onChange={e => setAnswers(a => ({ ...a, ambientTemp: +e.target.value }))}
-            className="w-full accent-brand-500"
+            onChange={v => setAnswers(a => ({ ...a, ambientTemp: v }))}
+            className="accent-brand-500"
           />
           <div className="flex justify-between text-xs text-gray-400 mt-1"><span>15°C</span><span>35°C</span></div>
           <button onClick={() => advance(4, {})}
@@ -430,12 +431,11 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
             <span className="text-4xl font-bold text-brand-500">{answers.totalHours}h</span>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{hoursLabel(answers.totalHours)}</p>
           </div>
-          <input type="range" min={4} max={72} step={1}
+          <SliderWithButtons min={4} max={72} step={1}
             value={answers.totalHours}
-            onChange={e => setAnswers(a => ({ ...a, totalHours: +e.target.value }))}
-            className="w-full accent-brand-500"
+            onChange={v => setAnswers(a => ({ ...a, totalHours: v }))}
+            className="accent-brand-500"
           />
-          <div className="flex justify-between text-xs text-gray-400 mt-1"><span>4h</span><span>72h</span></div>
           <button onClick={handleCalculate}
             className="mt-6 w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95"
             style={{ background: 'linear-gradient(135deg,#ea580c,#f97316)', fontSize: '1rem' }}>

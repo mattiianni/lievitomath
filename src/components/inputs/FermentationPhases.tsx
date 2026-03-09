@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SliderWithButtons } from '../ui/SliderWithButtons';
 import { useDoughStore } from '../../store/useDoughStore';
 import { useCalculation } from '../../hooks/useCalculation';
 import { q10Factor } from '../../engine/fermentation';
@@ -117,14 +118,13 @@ export function FermentationPhases() {
                           {isPrefermento ? 'Ore di riferimento' : 'Ore'}
                         </label>
                         <div className="flex items-center gap-2">
-                          <input
-                            type="range"
+                          <SliderWithButtons
                             min={phase.k === 0 ? 0 : 0.5}
                             max={phase.id === 'frigo' ? 72 : isPrefermento ? 48 : 24}
                             step={0.5}
                             value={phase.hours}
-                            onChange={e => updatePhase(phase.id, { hours: parseFloat(e.target.value) })}
-                            className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
+                            onChange={v => updatePhase(phase.id, { hours: v })}
+                            className="h-1.5 rounded appearance-none cursor-pointer accent-current"
                           />
                           <span className="text-sm font-bold w-10 text-right">{phase.hours}h</span>
                         </div>
@@ -138,14 +138,13 @@ export function FermentationPhases() {
                         {isPrefermento ? 'Temperatura ricetta' : 'Temperatura'}
                       </label>
                       <div className="flex items-center gap-2">
-                        <input
-                          type="range"
+                        <SliderWithButtons
                           min={phase.id === 'frigo' ? 2 : 14}
                           max={phase.id === 'frigo' ? 10 : 32}
                           step={1}
                           value={phase.temperatureCelsius}
-                          onChange={e => updatePhase(phase.id, { temperatureCelsius: parseFloat(e.target.value) })}
-                          className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
+                          onChange={v => updatePhase(phase.id, { temperatureCelsius: v })}
+                          className="h-1.5 rounded appearance-none cursor-pointer accent-current"
                         />
                         <span className="text-sm font-bold w-10 text-right">{phase.temperatureCelsius}°C</span>
                       </div>
@@ -161,14 +160,13 @@ export function FermentationPhases() {
                             <span className="opacity-50 font-normal ml-1">({phase.id === 'poolish' ? '30%' : '40%'} tipico)</span>
                           </label>
                           <div className="flex items-center gap-2">
-                            <input
-                              type="range"
+                            <SliderWithButtons
                               min={20}
                               max={phase.id === 'poolish' ? 40 : 70}
                               step={5}
                               value={phase.flourPercent ?? (phase.id === 'poolish' ? 30 : 40)}
-                              onChange={e => updatePhase(phase.id, { flourPercent: parseInt(e.target.value) })}
-                              className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
+                              onChange={v => updatePhase(phase.id, { flourPercent: v })}
+                              className="h-1.5 rounded appearance-none cursor-pointer accent-current"
                             />
                             <span className="text-sm font-bold w-10 text-right">
                               {phase.flourPercent ?? (phase.id === 'poolish' ? 30 : 40)}%
@@ -182,14 +180,13 @@ export function FermentationPhases() {
                             <span className="opacity-50 font-normal ml-1">({phase.id === 'poolish' ? '100%' : '44%'} tipico)</span>
                           </label>
                           <div className="flex items-center gap-2">
-                            <input
-                              type="range"
+                            <SliderWithButtons
                               min={phase.id === 'poolish' ? 80 : 40}
                               max={phase.id === 'poolish' ? 100 : 60}
                               step={phase.id === 'poolish' ? 5 : 2}
                               value={phase.hydrationPercent ?? (phase.id === 'poolish' ? 100 : 44)}
-                              onChange={e => updatePhase(phase.id, { hydrationPercent: parseInt(e.target.value) })}
-                              className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
+                              onChange={v => updatePhase(phase.id, { hydrationPercent: v })}
+                              className="h-1.5 rounded appearance-none cursor-pointer accent-current"
                             />
                             <span className="text-sm font-bold w-10 text-right">
                               {phase.hydrationPercent ?? (phase.id === 'poolish' ? 100 : 44)}%
@@ -223,12 +220,11 @@ export function FermentationPhases() {
                               </div>
                               <label className="text-xs font-medium opacity-80 mb-1 block">T ambiente</label>
                               <div className="flex items-center gap-2 mb-2">
-                                <input
-                                  type="range"
+                                <SliderWithButtons
                                   min={14} max={30} step={1}
                                   value={tAmb}
-                                  onChange={e => setAutoAmbientTemp(prev => ({ ...prev, [phase.id]: parseInt(e.target.value) }))}
-                                  className="flex-1 h-1.5 rounded appearance-none cursor-pointer accent-current"
+                                  onChange={v => setAutoAmbientTemp(prev => ({ ...prev, [phase.id]: v }))}
+                                  className="h-1.5 rounded appearance-none cursor-pointer accent-current"
                                 />
                                 <span className="text-sm font-bold w-10 text-right">{tAmb}°C</span>
                               </div>
