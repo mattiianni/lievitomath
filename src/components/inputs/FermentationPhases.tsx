@@ -261,8 +261,8 @@ export function FermentationPhases() {
 
                       const T_fridge  = frigoP.temperatureCelsius;
                       const T_amb     = phase.temperatureCelsius;
-                      // Target: min(T_amb-1, 20°C) — non ha senso portare l'impasto oltre 20°C
-                      const T_target  = Math.min(T_amb - 1, 21);
+                      // Target: almeno 16°C (soglia minima fermentazione), al più T_amb-1 e 21°C
+                      const T_target  = Math.max(Math.min(T_amb - 1, 21), 16);
                       const k         = 0.5; // h⁻¹ empirico per pallina in contenitore in aria
 
                       if (T_fridge >= T_target) return null;
