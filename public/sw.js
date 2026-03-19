@@ -1,4 +1,4 @@
-const CACHE = 'lievitomath-v0.9.26';
+const CACHE = 'lievitomath-v0.9.27';
 const PRECACHE = ['/', '/index.html', '/logo.png', '/manifest.json'];
 
 self.addEventListener('install', e => {

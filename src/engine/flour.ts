@@ -16,17 +16,17 @@ export function getTargetW(mode: DoughMode, cumulativeF: number): number {
   const F = Math.max(cumulativeF, 0.5);
   const baseW = Math.round(Math.log(F / 0.3568) / 0.01273);
 
-  // Offset per modo: napoletana usa stile più tenace (meno W strutturale),
-  // teglia ad alta idratazione richiede la formula pura
+  // Offset per modo: teglia ad alta idratazione stresa ulteriormente la maglia
   const OFFSET: Record<DoughMode, number> = {
-    napoletana: -20,
-    teglia:      0,
-    pane:       -10,
+    napoletana:  0,
+    teglia:     10,
+    pane:        0,
   };
+  // Minimo assoluto: Caputo Nuvola (W 270) — mai suggerire farine più deboli
   const MIN_W: Record<DoughMode, number> = {
-    napoletana: 200,
-    teglia:     240,
-    pane:       220,
+    napoletana: 270,
+    teglia:     280,
+    pane:       270,
   };
 
   return Math.max(baseW + OFFSET[mode], MIN_W[mode]);
@@ -37,9 +37,9 @@ export function getWBlendSuggestion(delta: number): string {
   if (delta < -40) return 'W molto basso: aggiungi 20-30% Manitoba (W 380-400).';
   if (delta < -20) return 'W basso: aggiungi 10-20% di farina forte (W 350+).';
   if (delta < -10) return 'W leggermente basso: aggiungi 5-10% di farina forte.';
-  if (delta > 40)  return 'W molto alto: taglia con farina debole 00 (W 150-200).';
-  if (delta > 20)  return 'W alto: aggiungi 15-20% di farina debole o integrale.';
-  return 'W leggermente alto: sostituisci il 5-10% con farina 00 debole.';
+  if (delta > 40)  return 'W molto alto per questa fermentazione: puoi usare una farina meno forte o accorciare la lievitazione.';
+  if (delta > 20)  return 'W leggermente alto: va bene, dà più struttura. In alternativa riduci la percentuale di farina forte.';
+  return 'W leggermente alto: sostituisci il 5-10% con una farina meno forte.';
 }
 
 export function getHydrationStatus(hydration: number, mode: DoughMode): HydrationStatus {
@@ -95,34 +95,38 @@ export interface BlendIngredient {
   type: string;
 }
 
-// Farine anchor ordinate per W crescente
+// Farine anchor ordinate per W crescente — minimo assoluto: Caputo Nuvola (W 270)
 const ANCHOR_FLOURS: BlendIngredient[] = [
-  { brand: 'Generica', name: 'Farina 00 debole',      w: 180, percentage: 0, type: '00' },
-  { brand: 'Caputo',   name: 'Pizzeria (Blu)',         w: 260, percentage: 0, type: '00' },
-  { brand: 'Caputo',   name: 'Nuvola',                 w: 270, percentage: 0, type: '0'  },
-  { brand: 'Caputo',   name: 'Cuoco',                  w: 300, percentage: 0, type: '00' },
-  { brand: 'Caputo',   name: 'Rossa',                  w: 330, percentage: 0, type: '00' },
-  { brand: 'Le 5 Stagioni', name: 'Oro',               w: 390, percentage: 0, type: '0'  },
-  { brand: 'Caputo',   name: 'Criscito (Manitoba)',    w: 380, percentage: 0, type: 'manitoba' },
+  { brand: 'Caputo',        name: 'Nuvola',             w: 270, percentage: 0, type: '0'       },
+  { brand: 'Caputo',        name: 'Cuoco',               w: 300, percentage: 0, type: '00'      },
+  { brand: 'Caputo',        name: 'Rossa',               w: 330, percentage: 0, type: '00'      },
+  { brand: 'Caputo',        name: 'Criscito (Manitoba)', w: 380, percentage: 0, type: 'manitoba' },
+  { brand: 'Le 5 Stagioni', name: 'Oro',                 w: 390, percentage: 0, type: '0'       },
 ];
 
 /**
- * Dato un W target, suggerisce la combinazione di 2 farine Caputo per raggiungerlo.
- * Usa interpolazione lineare tra le due anchor più vicine.
+ * Dato un W target, suggerisce la farina singola ottimale o il blend minimo necessario.
+ * Filosofia: blend solo se strettamente necessario (nessuna singola farina entro ±15W).
  */
 export function suggestBlend(targetW: number): BlendIngredient[] {
   const anchors = [...ANCHOR_FLOURS].sort((a, b) => a.w - b.w);
 
-  // Se target <= farina più debole
+  // Se target <= farina più debole (W 270), suggerisci Nuvola al 100%
   if (targetW <= anchors[0].w) {
     return [{ ...anchors[0], percentage: 100 }];
   }
-  // Se target >= farina più forte
+  // Se target >= farina più forte, suggerisci quella sola
   if (targetW >= anchors[anchors.length - 1].w) {
     return [{ ...anchors[anchors.length - 1], percentage: 100 }];
   }
 
-  // Trova la coppia che comprende targetW
+  // Se una singola farina è entro ±15W dal target, usala al 100% (no blend)
+  const exact = anchors.find(a => Math.abs(a.w - targetW) <= 15);
+  if (exact) {
+    return [{ ...exact, percentage: 100 }];
+  }
+
+  // Solo se nessuna singola farina copre il target: blend tra le due più vicine
   let lower = anchors[0];
   let upper = anchors[1];
   for (let i = 0; i < anchors.length - 1; i++) {
@@ -145,8 +149,6 @@ export function suggestBlend(targetW: number): BlendIngredient[] {
   const result: BlendIngredient[] = [];
   if (pLower > 0) result.push({ ...lower, percentage: pLower });
   if (pUpper > 0) result.push({ ...upper, percentage: pUpper });
-
-  // W blend effettivo del suggerimento
   return result;
 }
 
