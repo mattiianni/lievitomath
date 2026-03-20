@@ -13,8 +13,9 @@ import { calcSchedule, absToLabel } from '../../utils/cookingSchedule';
 const PHASE_COLORS: Record<string, string> = {
   biga:     'bg-[#fdf5dc] dark:bg-[#D9C27A] text-[#4a3010] dark:text-[#3a2800]',
   poolish:  'bg-[#e8edf8] dark:bg-[#6B7EA4] text-[#1a2840] dark:text-[#dce8f8]',
-  puntata:  'bg-[#f5ece0] dark:bg-[#6A5535] text-[#3a2010] dark:text-[#f0d8b0]',
   autolisi: 'bg-[#f5f0e8] dark:bg-[#9E9278] text-[#3a3020] dark:text-[#2a2010]',
+  impasto:  'bg-[#edf5ee] dark:bg-[#4a7a52] text-[#1a3a20] dark:text-[#d0f0d8]',
+  puntata:  'bg-[#f5ece0] dark:bg-[#6A5535] text-[#3a2010] dark:text-[#f0d8b0]',
   frigo:    'bg-[#edf2fa] dark:bg-[#8B9EC4] text-[#1a2840] dark:text-[#0a1428]',
   appretto: 'bg-[#eaecf2] dark:bg-[#252B3C] text-[#1a2030] dark:text-[#a0b0c8]',
 };
@@ -23,6 +24,7 @@ const PHASE_ICONS: Record<string, string> = {
   biga:     '🍞',
   poolish:  '💧',
   autolisi: '⏸',
+  impasto:  '🤌',
   frigo:    '❄️',
 };
 
@@ -65,8 +67,12 @@ export function FermentationPhases() {
           const isPrefermento = PREFERMENTI.includes(phase.id);
           const isAutoOn = autoEnabled[phase.id] ?? false;
           const tAmb = autoAmbientTemp[phase.id] ?? 20;
-          // Biga disabilitata quando si usa madre/licoli (biga = solo LdB per definizione)
+          // Biga disabilitata quando si usa madre/licoli
           const isBigaDisabled = phase.id === 'biga' && isSourdough;
+          // Autolisi disabilitata quando è attivo un prefermento
+          const anyPrefermento = phases.some(p => PREFERMENTI.includes(p.id) && p.active);
+          const isAutolisiDisabled = phase.id === 'autolisi' && anyPrefermento;
+          const isDisabled = isBigaDisabled || isAutolisiDisabled;
 
           return (
             <div key={phase.id}>
@@ -75,7 +81,7 @@ export function FermentationPhases() {
               )}
 
               <div className={`rounded-xl p-3 border transition-all ${
-                isBigaDisabled
+                isDisabled
                   ? 'border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/30 opacity-40'
                   : phase.active
                     ? 'border-current/15 ' + phaseColor(phase.id)
@@ -93,13 +99,13 @@ export function FermentationPhases() {
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {/* Pillola orario: orizzontale, font coerente, bordo solido */}
-                    {phase.active && !isBigaDisabled && schedule[phase.id] && (
+                    {/* Pillola orario */}
+                    {phase.active && !isDisabled && schedule[phase.id] && (
                       <span className="text-xs px-2 py-0.5 rounded-md border border-neutral-400 dark:border-neutral-500 text-neutral-600 dark:text-neutral-300 whitespace-nowrap flex-shrink-0 font-medium">
                         {absToLabel(schedule[phase.id].start)} → {absToLabel(schedule[phase.id].end)}
                       </span>
                     )}
-                    {!phase.locked && !isBigaDisabled && (
+                    {!phase.locked && !isDisabled && (
                       <button
                         onClick={() => togglePhase(phase.id)}
                         className={`text-xs px-2 py-0.5 rounded-full border font-medium transition-colors flex-shrink-0 ${
@@ -114,29 +120,34 @@ export function FermentationPhases() {
                   </div>
                 </div>
 
-                {/* Nota biga disabilitata */}
+                {/* Note fasi disabilitate */}
                 {isBigaDisabled && (
                   <p className="text-xs text-neutral-400 dark:text-neutral-500 italic">
                     Richiede lievito di birra fresco — non compatibile con Madre/Li.Co.Li
                   </p>
                 )}
+                {isAutolisiDisabled && (
+                  <p className="text-xs text-neutral-400 dark:text-neutral-500 italic">
+                    Non combinabile con Biga o Poolish (sono già prefermenti)
+                  </p>
+                )}
 
-                {phase.active && !isBigaDisabled && (
+                {phase.active && !isDisabled && (
                   <div className="flex flex-col gap-3">
 
-                    {/* Slider Ore — nascosto in AUTO mode per prefermenti */}
+                    {/* Slider Ore — nascosto in AUTO mode per prefermenti; per impasto slider speciale 0:30-2:00 */}
                     {(!isPrefermento || !isAutoOn) && (
                       <div>
                         <div className="flex items-center justify-between mb-1">
                           <label className="text-xs font-medium opacity-80">
-                            {isPrefermento ? 'Ore di riferimento' : 'Ore'}
+                            {isPrefermento ? 'Ore di riferimento' : phase.id === 'impasto' ? 'Durata impasto' : 'Ore'}
                           </label>
-                          <span className="text-sm font-bold">{phase.hours}h</span>
+                          <span className="text-sm font-bold">{formatHours(phase.hours)}</span>
                         </div>
                         <SliderWithButtons
-                          min={phase.k === 0 ? 0 : 0.5}
-                          max={phase.id === 'frigo' ? 72 : isPrefermento ? 48 : 24}
-                          step={0.5}
+                          min={phase.id === 'impasto' ? 0.5 : phase.k === 0 ? 0 : 0.5}
+                          max={phase.id === 'impasto' ? 2 : phase.id === 'frigo' ? 72 : isPrefermento ? 48 : 24}
+                          step={phase.id === 'impasto' ? 0.25 : 0.5}
                           value={phase.hours}
                           onChange={v => updatePhase(phase.id, { hours: v })}
                           className="h-1.5 rounded appearance-none cursor-pointer accent-current"
@@ -144,12 +155,12 @@ export function FermentationPhases() {
                       </div>
                     )}
 
-                    {/* Slider Temperatura — nascosto per prefermenti quando AUTO è ON */}
+                    {/* Slider Temperatura — per impasto = "Temp. uscita impasto", per frigo ecc. normale */}
                     {(!isPrefermento || !isAutoOn) && (
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <label className="text-xs font-medium opacity-80">
-                          {isPrefermento ? 'Temperatura ricetta' : 'Temperatura'}
+                          {isPrefermento ? 'Temperatura ricetta' : phase.id === 'impasto' ? 'Temp. uscita impasto' : 'Temperatura'}
                         </label>
                         <span className="text-sm font-bold">{phase.temperatureCelsius}°C</span>
                       </div>

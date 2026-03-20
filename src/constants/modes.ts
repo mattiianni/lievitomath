@@ -23,6 +23,7 @@ const DEFAULT_PHASES: Record<DoughMode, FermentationPhase[]> = {
   napoletana: [
     ...PREFERMENTO_PHASES,
     { id: 'autolisi', label: 'Autolisi (riposo)',  hours: 0.5, temperatureCelsius: 20, k: 0.0, active: false },
+    { id: 'impasto',  label: 'Impasto',            hours: 0.75, temperatureCelsius: 24, k: 0.0, active: true },
     { id: 'puntata',  label: 'Puntata',            hours: 2,   temperatureCelsius: 24, k: 1.0, active: true },
     { id: 'frigo',    label: 'Frigo',              hours: 16,  temperatureCelsius: 4,  k: 0.2, active: true },
     { id: 'appretto', label: 'Appretto',           hours: 4,   temperatureCelsius: 22, k: 0.6, active: true,  locked: true },
@@ -30,13 +31,15 @@ const DEFAULT_PHASES: Record<DoughMode, FermentationPhase[]> = {
   teglia: [
     ...PREFERMENTO_PHASES,
     { id: 'autolisi', label: 'Autolisi (riposo)',  hours: 0.5, temperatureCelsius: 20, k: 0.0, active: false },
+    { id: 'impasto',  label: 'Impasto',            hours: 0.75, temperatureCelsius: 24, k: 0.0, active: true },
     { id: 'puntata',  label: 'Puntata',            hours: 1,   temperatureCelsius: 24, k: 1.0, active: true },
     { id: 'frigo',    label: 'Frigo',              hours: 24,  temperatureCelsius: 4,  k: 0.2, active: true },
-    { id: 'appretto', label: 'Appretto',            hours: 3,   temperatureCelsius: 22, k: 0.6, active: true, locked: true },
+    { id: 'appretto', label: 'Appretto',           hours: 3,   temperatureCelsius: 22, k: 0.6, active: true, locked: true },
   ],
   pane: [
     ...PREFERMENTO_PHASES,
     { id: 'autolisi', label: 'Autolisi (riposo)',  hours: 1,   temperatureCelsius: 20, k: 0.0, active: false },
+    { id: 'impasto',  label: 'Impasto',            hours: 1,   temperatureCelsius: 26, k: 0.0, active: true },
     { id: 'puntata',  label: 'Bulk (puntata)',     hours: 4,   temperatureCelsius: 26, k: 1.0, active: true },
     { id: 'frigo',    label: 'Frigo',              hours: 12,  temperatureCelsius: 4,  k: 0.2, active: true },
     { id: 'appretto', label: 'Appretto',           hours: 2,   temperatureCelsius: 24, k: 0.6, active: true, locked: true },

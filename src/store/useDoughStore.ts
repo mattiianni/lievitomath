@@ -72,10 +72,15 @@ export const useDoughStore = create<DoughStore>()((set) => ({
   togglePhase: (id) =>
     set(s => {
       const PREFERMENTI = ['biga', 'poolish'];
+      const current = s.state.phases.find(p => p.id === id);
+      const willBeActive = current ? !current.active : false;
       const phases = s.state.phases.map(p => {
         if (p.id === id && !p.locked) return { ...p, active: !p.active };
-        if (PREFERMENTI.includes(id) && PREFERMENTI.includes(p.id) && p.id !== id)
-          return { ...p, active: false };
+        // Attivare un prefermento → disattiva l'altro prefermento E l'autolisi
+        if (PREFERMENTI.includes(id) && willBeActive) {
+          if (PREFERMENTI.includes(p.id) && p.id !== id) return { ...p, active: false };
+          if (p.id === 'autolisi') return { ...p, active: false };
+        }
         return p;
       });
       return { state: { ...s.state, phases } };

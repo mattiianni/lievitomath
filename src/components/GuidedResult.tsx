@@ -12,6 +12,8 @@ const MODE_NAME: Record<string, string> = {
 const PHASE_COLOR: Record<string, string> = {
   biga:     '#c9a840',
   poolish:  '#6B7EA4',
+  autolisi: '#9E9278',
+  impasto:  '#4a7a52',
   puntata:  '#8B5E35',
   frigo:    '#4A6A9C',
   appretto: '#ea580c',
