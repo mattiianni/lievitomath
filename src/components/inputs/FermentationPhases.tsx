@@ -4,6 +4,7 @@ import { useDoughStore } from '../../store/useDoughStore';
 import { useCalculation } from '../../hooks/useCalculation';
 import { q10Factor } from '../../engine/fermentation';
 import { SectionCard } from '../ui/SectionCard';
+import { calcSchedule, absToLabel } from '../../utils/cookingSchedule';
 
 // Palette muted/desaturata (fornita utente — "palette scura")
 // Swatch (sx→dx): #8B9EC4 #9E9278 #D9C27A #6B7EA4 #6A5535 #252B3C
@@ -40,11 +41,15 @@ function formatHours(h: number) {
 }
 
 export function FermentationPhases() {
-  const phases = useDoughStore(s => s.state.phases);
+  const phases      = useDoughStore(s => s.state.phases);
   const updatePhase = useDoughStore(s => s.updatePhase);
   const togglePhase = useDoughStore(s => s.togglePhase);
-  const yeastType = useDoughStore(s => s.state.yeastType);
-  const result = useCalculation();
+  const yeastType   = useDoughStore(s => s.state.yeastType);
+  const cookingDay  = useDoughStore(s => s.cookingDay);
+  const cookingTime = useDoughStore(s => s.cookingTime);
+  const result      = useCalculation();
+
+  const schedule = calcSchedule(phases, cookingDay, cookingTime);
 
   const isSourdough = yeastType === 'madre' || yeastType === 'licoli';
 
@@ -87,18 +92,27 @@ export function FermentationPhases() {
                       <span className="text-xs opacity-60">⏸ riposo</span>
                     )}
                   </div>
-                  {!phase.locked && !isBigaDisabled && (
-                    <button
-                      onClick={() => togglePhase(phase.id)}
-                      className={`text-xs px-2 py-0.5 rounded-full border font-medium transition-colors flex-shrink-0 ${
-                        phase.active
-                          ? 'border-current opacity-70 hover:opacity-100'
-                          : 'border-neutral-400 text-neutral-400 hover:border-neutral-600'
-                      }`}
-                    >
-                      {phase.active ? 'ON' : 'OFF'}
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* Pillola orario: stessa altezza di ON, bordo tratteggiato */}
+                    {phase.active && !isBigaDisabled && schedule[phase.id] && (
+                      <div className="text-[10px] font-mono leading-tight px-2 py-0.5 rounded-md border border-dashed border-neutral-400 dark:border-neutral-500 text-neutral-500 dark:text-neutral-400 text-right">
+                        <div>{absToLabel(schedule[phase.id].start)}</div>
+                        <div className="opacity-70">→ {absToLabel(schedule[phase.id].end)}</div>
+                      </div>
+                    )}
+                    {!phase.locked && !isBigaDisabled && (
+                      <button
+                        onClick={() => togglePhase(phase.id)}
+                        className={`text-xs px-2 py-0.5 rounded-full border font-medium transition-colors flex-shrink-0 ${
+                          phase.active
+                            ? 'border-current opacity-70 hover:opacity-100'
+                            : 'border-neutral-400 text-neutral-400 hover:border-neutral-600'
+                        }`}
+                      >
+                        {phase.active ? 'ON' : 'OFF'}
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Nota biga disabilitata */}

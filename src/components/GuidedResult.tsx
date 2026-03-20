@@ -1,6 +1,7 @@
 
 import type { GuidedResult as GResult } from '../engine/guidedModeEngine';
 import { yeastTypeLabel } from '../engine/fermentation';
+import { calcSchedule, absToLabel } from '../utils/cookingSchedule';
 
 const MODE_NAME: Record<string, string> = {
   napoletana: 'Pizza Napoletana',
@@ -25,16 +26,24 @@ function phaseLabel(hours: number): string {
 
 interface Props {
   result: GResult;
+  cookingDay: number;
+  cookingTime: number;
   onReset: () => void;
   onOpenAdvanced: () => void;
 }
 
-export function GuidedResult({ result, onReset, onOpenAdvanced }: Props) {
+export function GuidedResult({ result, cookingDay, cookingTime, onReset, onOpenAdvanced }: Props) {
   const {
     ingredients, yeastPercent, phases, suggestedFlour, targetW,
     prefermentiSplit, mode, pieces, weightPerPiece, hydration, salt, oil,
     effectiveYeastType, exitTempC,
   } = result;
+
+  const schedule = calcSchedule(
+    phases.map(p => ({ ...p, active: true })),
+    cookingDay,
+    cookingTime,
+  );
 
   const isSourdoughDirect = !prefermentiSplit && (effectiveYeastType === 'madre' || effectiveYeastType === 'licoli');
 
@@ -135,6 +144,12 @@ export function GuidedResult({ result, onReset, onOpenAdvanced }: Props) {
                 <div className="text-[11px] font-semibold capitalize">{phase.label}</div>
                 <div className="text-sm font-bold">{phaseLabel(phase.hours)}</div>
                 <div className="text-[10px] opacity-80">{phase.temperatureCelsius}°C</div>
+                {schedule[phase.id] && (
+                  <div className="text-[9px] font-mono opacity-75 mt-0.5 leading-tight">
+                    <div>{absToLabel(schedule[phase.id].start)}</div>
+                    <div>→ {absToLabel(schedule[phase.id].end)}</div>
+                  </div>
+                )}
               </div>
               {i < phases.length - 1 && (
                 <div className="w-4 h-0.5 bg-gray-300 dark:bg-gray-600 flex-shrink-0" />

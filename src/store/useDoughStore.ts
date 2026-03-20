@@ -8,6 +8,11 @@ interface DoughStore {
   userFlourBanner: string | null;
   setUserFlourBanner: (msg: string | null) => void;
 
+  cookingDay: number;   // 0=LUN … 6=DOM
+  cookingTime: number;  // minuti dalla mezzanotte (es. 1200 = 20:00)
+  setCookingDay: (day: number) => void;
+  setCookingTime: (time: number) => void;
+
   setMode: (mode: DoughMode) => void;
   setPieces: (n: number) => void;
   setWeightPerPiece: (w: number) => void;
@@ -33,7 +38,12 @@ export const useDoughStore = create<DoughStore>()((set) => ({
   state: getDefaultState('napoletana'),
   userFlourBanner: null,
 
+  cookingDay:  5,     // SAB
+  cookingTime: 1200,  // 20:00
+
   setUserFlourBanner: (msg) => set(() => ({ userFlourBanner: msg })),
+  setCookingDay:  (day)  => set(() => ({ cookingDay: day })),
+  setCookingTime: (time) => set(() => ({ cookingTime: time })),
 
   setMode: (mode) => set(s => ({ state: { ...s.state, mode } })),
   setPieces: (pieces) => set(s => ({ state: { ...s.state, pieces } })),

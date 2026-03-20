@@ -89,7 +89,8 @@ export function suggestPhases(params: GuidedParams): FermentationPhase[] {
     if (usesFridge) {
       const { apprettoH: appH } = calcApprettoAfterFrigo(ambientTemp, APPRETTO_FRIGO_BASE[mode]);
       const puntataH = PUNTATA_FRIGO[mode];
-      let bigaH  = Math.min(totalHours - appH - puntataH, 18);
+      const minFrigoH = 4;
+      let bigaH  = Math.min(totalHours - appH - puntataH - minFrigoH, 18);
       bigaH      = Math.max(bigaH, 4);
       const frigoH = totalHours - bigaH - puntataH - appH;
 
@@ -120,7 +121,8 @@ export function suggestPhases(params: GuidedParams): FermentationPhase[] {
     if (usesFridge) {
       const { apprettoH: appH } = calcApprettoAfterFrigo(ambientTemp, APPRETTO_FRIGO_BASE[mode]);
       const puntataH = PUNTATA_FRIGO[mode];
-      let poolishH = Math.min(totalHours - appH - puntataH, 12);
+      const minFrigoH = 4;
+      let poolishH = Math.min(totalHours - appH - puntataH - minFrigoH, 12);
       poolishH     = Math.max(poolishH, 2);
       const frigoH = totalHours - poolishH - puntataH - appH;
 

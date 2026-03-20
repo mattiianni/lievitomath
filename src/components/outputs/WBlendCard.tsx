@@ -100,15 +100,17 @@ export function WBlendCard() {
           </div>
 
           <div className="flex gap-2">
-            <button
-              onClick={handleApplyBlend}
-              className="flex-1 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 transition-colors"
-            >
-              Applica al blend ↑
-            </button>
+            {blend.length > 1 && (
+              <button
+                onClick={handleApplyBlend}
+                className="flex-1 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 transition-colors"
+              >
+                Applica al blend ↑
+              </button>
+            )}
             <button
               onClick={() => setShowBlend(false)}
-              className="px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              className="flex-1 px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >
               Chiudi
             </button>

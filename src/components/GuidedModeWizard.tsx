@@ -6,6 +6,7 @@ import type { GuidedResult as GResult, GuidedParams } from '../engine/guidedMode
 import { GuidedResult } from './GuidedResult';
 import { useDoughStore } from '../store/useDoughStore';
 import { getDefaultState } from '../constants/modes';
+import { DAYS } from '../utils/cookingSchedule';
 
 // ── Dati step ────────────────────────────────────────────────────────────────
 
@@ -44,12 +45,15 @@ interface WizardAnswers {
   staglioAFreddo: boolean | null;
   prefermento: PrefOpt | null;
   totalHours: number;
+  cookingDay: number;
+  cookingTime: number;
 }
 
 const INITIAL_ANSWERS: WizardAnswers = {
   mode: null, pieces: 4, ambientTemp: 22,
   yeastMain: null, yeastSub: 'madre',
   usesFridge: null, staglioAFreddo: null, prefermento: null, totalHours: 24,
+  cookingDay: 5, cookingTime: 1200,
 };
 
 function getYeastType(a: WizardAnswers): YeastType {
@@ -135,6 +139,7 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
       if (n <= 5) { a.usesFridge = null; a.staglioAFreddo = null; a.prefermento = null; }
       if (n <= 6) { a.staglioAFreddo = null; a.prefermento = null; }
       if (n <= 7) { a.prefermento = null; }
+      if (n <= 8) { a.totalHours = 24; }
       return a;
     });
     setStep(n);
@@ -152,7 +157,7 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
       totalHours:    answers.totalHours,
     };
     setResult(calculateGuided(params));
-    setStep(9);
+    setStep(10);
   };
 
   // Popola lo store avanzato con un unico aggiornamento atomico
@@ -185,6 +190,8 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
         }],
         phases: fullPhases,
       },
+      cookingDay:  answers.cookingDay,
+      cookingTime: answers.cookingTime,
     });
     onClose();
   };
@@ -197,10 +204,12 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
 
   const isSourdoughSelected = answers.yeastMain === 'naturale';
 
-  if (result && step === 9) {
+  if (result && step === 10) {
     return (
       <GuidedResult
         result={result}
+        cookingDay={answers.cookingDay}
+        cookingTime={answers.cookingTime}
         onReset={() => { setResult(null); setAnswers(INITIAL_ANSWERS); setStep(1); }}
         onOpenAdvanced={handleOpenAdvanced}
       />
@@ -426,7 +435,9 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
 
       {/* ⑧ QUANTE ORE */}
       {step >= 8 && (
-        <StepCard n={8} title="Quante ore hai a disposizione?" done={false}>
+        <StepCard n={8} title="Quante ore hai a disposizione?" done={step > 8}
+          doneLabel={hoursLabel(answers.totalHours)}
+          onEdit={() => goBack(8)}>
           <div className="text-center mb-4">
             <span className="text-4xl font-bold text-brand-500">{answers.totalHours}h</span>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{hoursLabel(answers.totalHours)}</p>
@@ -436,8 +447,60 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
             onChange={v => setAnswers(a => ({ ...a, totalHours: v }))}
             className="accent-brand-500"
           />
+          <button onClick={() => advance(9, {})}
+            className="mt-5 w-full py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm transition-colors">
+            Avanti →
+          </button>
+        </StepCard>
+      )}
+
+      {/* ⑨ A CHE ORA VUOI INFORNARE */}
+      {step >= 9 && (
+        <StepCard n={9} title="A che ora vuoi infornare?" done={false}>
+          {/* Selezione giorno */}
+          <div className="flex gap-1.5 flex-wrap justify-center mb-5">
+            {DAYS.map((day, i) => (
+              <button
+                key={day}
+                onClick={() => setAnswers(a => ({ ...a, cookingDay: i }))}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                  answers.cookingDay === i
+                    ? 'bg-brand-500 text-white'
+                    : 'bg-gray-100 dark:bg-[#0A1228]/60 text-gray-600 dark:text-gray-300 hover:bg-brand-100 dark:hover:bg-brand-900/30'
+                }`}
+              >
+                {day}
+              </button>
+            ))}
+          </div>
+
+          {/* Selezione orario */}
+          <div className="flex items-center justify-center gap-5 mb-6">
+            <button
+              onClick={() => {
+                const newTime = ((answers.cookingTime - 15) % (24 * 60) + 24 * 60) % (24 * 60);
+                setAnswers(a => ({ ...a, cookingTime: newTime }));
+              }}
+              className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-[#0A1228] text-gray-700 dark:text-white text-2xl font-bold hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors select-none"
+            >
+              −
+            </button>
+            <span className="text-4xl font-bold text-gray-900 dark:text-white tabular-nums w-32 text-center">
+              {String(Math.floor(answers.cookingTime / 60)).padStart(2, '0')}:{String(answers.cookingTime % 60).padStart(2, '0')}
+            </span>
+            <button
+              onClick={() => {
+                const newTime = (answers.cookingTime + 15) % (24 * 60);
+                setAnswers(a => ({ ...a, cookingTime: newTime }));
+              }}
+              className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-[#0A1228] text-gray-700 dark:text-white text-2xl font-bold hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors select-none"
+            >
+              +
+            </button>
+          </div>
+
           <button onClick={handleCalculate}
-            className="mt-6 w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95"
+            className="w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95"
             style={{ background: 'linear-gradient(135deg,#ea580c,#f97316)', fontSize: '1rem' }}>
             🍞 CALCOLA INGREDIENTI
           </button>
