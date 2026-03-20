@@ -93,12 +93,11 @@ export function FermentationPhases() {
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {/* Pillola orario: stessa altezza di ON, bordo tratteggiato */}
+                    {/* Pillola orario: orizzontale, font coerente, bordo solido */}
                     {phase.active && !isBigaDisabled && schedule[phase.id] && (
-                      <div className="text-[10px] font-mono leading-tight px-2 py-0.5 rounded-md border border-dashed border-neutral-400 dark:border-neutral-500 text-neutral-500 dark:text-neutral-400 text-right">
-                        <div>{absToLabel(schedule[phase.id].start)}</div>
-                        <div className="opacity-70">→ {absToLabel(schedule[phase.id].end)}</div>
-                      </div>
+                      <span className="text-xs px-2 py-0.5 rounded-md border border-neutral-400 dark:border-neutral-500 text-neutral-600 dark:text-neutral-300 whitespace-nowrap flex-shrink-0 font-medium">
+                        {absToLabel(schedule[phase.id].start)} → {absToLabel(schedule[phase.id].end)}
+                      </span>
                     )}
                     {!phase.locked && !isBigaDisabled && (
                       <button
