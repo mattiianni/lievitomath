@@ -11,6 +11,7 @@ import { WBlendCard } from './components/outputs/WBlendCard';
 import { GuidedModeToggle } from './components/GuidedModeToggle';
 import { GuidedModePage } from './components/GuidedModePage';
 import { CookingTimeInput } from './components/inputs/CookingTimeInput';
+import { StaglioSelector } from './components/inputs/StaglioSelector';
 
 export default function App() {
   const [guidedMode, setGuidedMode] = useState(false);
@@ -52,6 +53,7 @@ export default function App() {
             </div>
 
             <div className="flex flex-col gap-5">
+              <StaglioSelector />
               <CookingTimeInput />
               <FermentationPhases />
               <IngredientsCard />

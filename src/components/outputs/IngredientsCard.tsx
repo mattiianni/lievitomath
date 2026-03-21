@@ -68,6 +68,22 @@ export function IngredientsCard() {
   else if (cumulativeF < 28) quality = 'Fermentazione lunga — aromi complessi, buona digeribilità';
   else quality = 'Fermentazione molto lunga — massima maturazione';
 
+  // Posizione staglio nel riepilogo
+  const staglioAFreddo = state.staglioAFreddo ?? false;
+  const hasFrigo = activePhasesForSummary.some(p => p.id === 'frigo');
+  const showStaglio = mode === 'napoletana' || mode === 'teglia';
+  let staglioAfterPhaseId: string | null = null;
+  if (showStaglio) {
+    if (!hasFrigo) {
+      staglioAfterPhaseId = 'puntata';
+    } else if (mode === 'napoletana') {
+      staglioAfterPhaseId = 'frigo';
+    } else {
+      // teglia con frigo
+      staglioAfterPhaseId = staglioAFreddo ? 'puntata' : 'frigo';
+    }
+  }
+
   function handlePrint() {
     const el = document.getElementById('print-view');
     if (!el) return;
@@ -93,35 +109,64 @@ export function IngredientsCard() {
       return h > 0 ? `${h}h ${m}min` : `${m} min`;
     }
 
+    // Determina posizione staglio per la stampa
+    const printHasFrigo = phases.some(p => p.id === 'frigo');
+    let printStaglioAfterPhaseId: string | null = null;
+    if (showStaglio) {
+      if (!printHasFrigo) {
+        printStaglioAfterPhaseId = 'puntata';
+      } else if (mode === 'napoletana') {
+        printStaglioAfterPhaseId = 'frigo';
+      } else {
+        printStaglioAfterPhaseId = staglioAFreddo ? 'puntata' : 'frigo';
+      }
+    }
+
+    // Costruisce righe fasi con staglio inserito nella posizione corretta
     const phasesHtml = phases.map(p => {
       const color = phaseColors[p.id] ?? '#6b7280';
       const s = printSchedule[p.id];
-      const orariLine = s
-        ? `<div style="font-size:11px; color:#666; margin-top:4px;">dalle ${absToLabel(s.start)} alle ${absToLabel(s.end)}</div>`
-        : '';
-      return `
-      <div style="display:flex; align-items:flex-start; justify-content:space-between; padding:10px 14px; border-radius:10px; border-left:4px solid ${color}; background:#fafafa; margin-bottom:4px;">
-        <span style="font-size:14px; font-weight:600; color:#222;">${p.label}</span>
-        <div style="text-align:right;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="background:${color}; color:white; border-radius:6px; padding:3px 10px; font-size:13px; font-weight:700;">${phaseHoursLabel(p.hours)}</span>
-            <span style="font-size:13px; color:#555;">a</span>
-            <span style="background:#1e3a5f; color:white; border-radius:6px; padding:3px 10px; font-size:13px; font-weight:700;">${p.temperatureCelsius}°C</span>
-          </div>
-          ${orariLine}
-        </div>
-      </div>`;
+      const orariCell = s
+        ? `<td style="padding:6px 8px; text-align:right; width:38%; color:#555; font-size:11px;">da ${absToLabel(s.start)} a ${absToLabel(s.end)}</td>`
+        : '<td></td>';
+
+      const phaseRow = `
+        <tr style="border-bottom:1px solid #f0f0f0;">
+          <td style="padding:6px 8px; width:28%;">
+            <span style="display:inline-flex; align-items:center; gap:6px;">
+              <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${color}; flex-shrink:0;"></span>
+              <span style="font-size:13px; font-weight:600; color:#222;">${p.label}</span>
+            </span>
+          </td>
+          <td style="padding:6px 4px; width:17%; text-align:center;">
+            <span style="background:${color}; color:white; border-radius:6px; padding:2px 8px; font-size:12px; font-weight:700;">${phaseHoursLabel(p.hours)}</span>
+          </td>
+          <td style="padding:6px 4px; width:17%; text-align:center;">
+            <span style="background:#1e3a5f; color:white; border-radius:6px; padding:2px 8px; font-size:12px; font-weight:700;">${p.temperatureCelsius}°C</span>
+          </td>
+          ${orariCell}
+        </tr>`;
+
+      // Aggiungi riga staglio se necessario
+      if (printStaglioAfterPhaseId === p.id) {
+        const staglioTime = s?.end;
+        const staglioLabel = staglioTime !== undefined ? absToLabel(staglioTime) : '';
+        const staglioRow = `
+          <tr style="background:#f5f0ff; border-bottom:1px solid #e8e0fa;">
+            <td style="padding:5px 8px; width:28%;">
+              <span style="font-size:13px; font-weight:700; color:#7c3aed;">✂️ Staglio</span>
+            </td>
+            <td style="padding:5px 4px; width:17%;"></td>
+            <td style="padding:5px 4px; width:17%;"></td>
+            <td style="padding:5px 8px; text-align:right; width:38%; color:#7c3aed; font-size:11px; font-weight:600;">${staglioLabel}</td>
+          </tr>`;
+        return phaseRow + staglioRow;
+      }
+
+      return phaseRow;
     }).join('');
 
     const totalPrintH = phases.reduce((s, p) => s + p.hours, 0);
-    const fermentSummaryRows = phases.map(p => {
-      const s = printSchedule[p.id];
-      const orari = s ? ` · ${absToLabel(s.start)} → ${absToLabel(s.end)}` : '';
-      return `<div style="display:flex; justify-content:space-between; font-size:12px; color:#555; margin-bottom:3px; padding:3px 0; border-bottom:1px solid #f5f5f5;">
-        <span>${p.label}</span>
-        <span>${phaseHoursLabel(p.hours)} @ ${p.temperatureCelsius}°C${orari}</span>
-      </div>`;
-    }).join('');
 
     el.innerHTML = `
       <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -149,7 +194,6 @@ export function IngredientsCard() {
             <h2 style="font-size:14px; font-weight:700; color:#ea580c; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Ingredienti</h2>
           </div>
           ${prefermentiSplit ? `
-            <!-- BIGA/POOLISH SECTION -->
             <div style="border:2px solid ${prefermentiSplit.prefermento.type === 'biga' ? '#fb923c' : '#c084fc'}; border-radius:10px; padding:12px; margin-bottom:12px; background:${prefermentiSplit.prefermento.type === 'biga' ? '#fff7ed' : '#faf5ff'};">
               <p style="font-size:12px; font-weight:700; color:${prefermentiSplit.prefermento.type === 'biga' ? '#c2410c' : '#7e22ce'}; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 8px 0;">
                 ${prefermentiSplit.prefermento.type === 'biga' ? '🍞 Biga' : '💧 Poolish'} — prepara ${prefermentiSplit.prefermento.hours}h prima a ${prefermentiSplit.prefermento.temperatureCelsius}°C
@@ -173,7 +217,6 @@ export function IngredientsCard() {
                 </tr>
               </table>
             </div>
-            <!-- IMPASTO FINALE SECTION -->
             <div style="border:1px solid #e5e7eb; border-radius:10px; padding:12px; margin-bottom:12px;">
               <p style="font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.06em; margin:0 0 8px 0;">Impasto finale</p>
               <table style="width:100%; border-collapse:collapse; font-size:14px;">
@@ -229,19 +272,19 @@ export function IngredientsCard() {
             <div style="width:4px; height:20px; background:#0ea5e9; border-radius:2px;"></div>
             <h2 style="font-size:14px; font-weight:700; color:#0ea5e9; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Fasi di fermentazione</h2>
           </div>
-          <div style="display:flex; flex-direction:column; gap:4px;">
+          <table style="width:100%; border-collapse:collapse;">
             ${phasesHtml}
-          </div>
+          </table>
         </div>
 
-        <!-- RIEPILOGO FERMENTAZIONE -->
+        <!-- RIEPILOGO FERMENTAZIONE (solo totali) -->
         ${phases.length > 0 ? `
         <div style="margin-bottom:12px; border-top:2px solid #f0f0f0; padding-top:12px;">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
             <div style="width:4px; height:20px; background:#8b5cf6; border-radius:2px;"></div>
             <h2 style="font-size:14px; font-weight:700; color:#8b5cf6; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Riepilogo fermentazione</h2>
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px;">
             <div style="background:#f5f5f5; border-radius:8px; padding:10px; text-align:center;">
               <div style="font-size:11px; color:#888; margin-bottom:4px;">Ore totali</div>
               <div style="font-size:18px; font-weight:700; color:#333;">${totalPrintH}h</div>
@@ -251,8 +294,7 @@ export function IngredientsCard() {
               <div style="font-size:18px; font-weight:700; color:#ea580c;">${cumulativeF.toFixed(1)}h</div>
             </div>
           </div>
-          <div style="font-size:11px; color:#888; font-style:italic; margin-bottom:8px;">${quality}</div>
-          ${fermentSummaryRows}
+          <div style="font-size:11px; color:#888; font-style:italic;">${quality}</div>
         </div>
         ` : ''}
 
@@ -264,7 +306,7 @@ export function IngredientsCard() {
           </div>
           <table style="width:100%; border-collapse:collapse; font-size:13px;">
             ${state.flours.map((f, i) => `
-              <tr style="background:${i % 2 === 0 ? '#f9fafb' : 'white'}; border-radius:6px;">
+              <tr style="background:${i % 2 === 0 ? '#f9fafb' : 'white'};">
                 <td style="padding:8px 8px; font-weight:600;">${f.brand} ${f.name}</td>
                 <td style="padding:8px 4px; text-align:center; color:#888; font-size:12px;">W${f.w}</td>
                 <td style="padding:8px 8px; text-align:right; font-weight:700; color:#ea580c;">${f.percentage}%</td>
@@ -303,7 +345,6 @@ export function IngredientsCard() {
         </div>
       )}
       {prefermentiSplit ? (
-        /* ── MODALITÀ PREFERMENTO: due sezioni ── */
         <>
           {/* BOX 1: Biga / Poolish */}
           <div className={`rounded-xl border-2 p-3 mb-3 ${
@@ -379,7 +420,6 @@ export function IngredientsCard() {
           </div>
         </>
       ) : (
-        /* ── MODALITÀ DIRETTA: tabella unica ── */
         <>
           <div className="space-y-1 mb-4">
             {rows.map(row => (
@@ -428,7 +468,7 @@ export function IngredientsCard() {
         Stampa / Salva PDF
       </button>
 
-      {/* RIEPILOGO FERMENTAZIONE - inline sotto gli ingredienti */}
+      {/* RIEPILOGO FERMENTAZIONE - inline con staglio */}
       {activePhasesForSummary.length > 0 && (
         <>
           <hr className="border-neutral-200 dark:border-neutral-700 my-4" />
@@ -449,16 +489,29 @@ export function IngredientsCard() {
             <p className="text-xs text-neutral-500 dark:text-neutral-400 italic mb-3">{quality}</p>
             <div className="space-y-2">
               {activePhasesForSummary.map(p => (
-                <div key={p.id} className="flex justify-between items-start text-xs text-neutral-500 dark:text-neutral-400">
-                  <span className="font-medium">{p.label}</span>
-                  <div className="text-right">
-                    <div>{phaseTimeLabel(p.hours)} @ {p.temperatureCelsius}°C</div>
-                    {schedule[p.id] && (
-                      <div className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono">
-                        {absToLabel(schedule[p.id].start)} → {absToLabel(schedule[p.id].end)}
-                      </div>
-                    )}
+                <div key={p.id}>
+                  <div className="flex justify-between items-start text-xs text-neutral-500 dark:text-neutral-400">
+                    <span className="font-medium">{p.label}</span>
+                    <div className="text-right">
+                      <div>{phaseTimeLabel(p.hours)} @ {p.temperatureCelsius}°C</div>
+                      {schedule[p.id] && (
+                        <div className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono">
+                          {absToLabel(schedule[p.id].start)} → {absToLabel(schedule[p.id].end)}
+                        </div>
+                      )}
+                    </div>
                   </div>
+                  {/* Staglio marker dopo la fase corretta */}
+                  {p.id === staglioAfterPhaseId && (
+                    <div className="flex justify-between items-center text-xs mt-1.5 px-2 py-1.5 rounded-lg bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800">
+                      <span className="font-semibold text-violet-700 dark:text-violet-400">✂️ Staglio</span>
+                      {schedule[p.id] && (
+                        <span className="text-[10px] font-mono text-violet-600 dark:text-violet-500">
+                          {absToLabel(schedule[p.id].end)}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

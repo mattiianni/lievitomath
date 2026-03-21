@@ -33,4 +33,5 @@ export interface DoughState {
   flours: Flour[];
   phases: FermentationPhase[];
   staglioImmediato?: boolean; // solo teglia: se true, staglio subito dopo puntata (no frigo)
+  staglioAFreddo?: boolean;  // true = staglio prima del frigo (panetti in frigo); false = staglio dopo (massa in frigo)
 }

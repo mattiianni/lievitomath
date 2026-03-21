@@ -21,6 +21,7 @@ interface DoughStore {
   setOil: (o: number) => void;
   setYeastType: (y: YeastType) => void;
   setStaglioImmediato: (v: boolean) => void;
+  setStaglioAFreddo: (v: boolean) => void;
 
   updatePhase: (id: string, changes: Partial<FermentationPhase>) => void;
   togglePhase: (id: string) => void;
@@ -60,6 +61,7 @@ export const useDoughStore = create<DoughStore>()((set) => ({
     return { state: { ...s.state, yeastType, phases } };
   }),
   setStaglioImmediato: (v) => set(s => ({ state: { ...s.state, staglioImmediato: v } })),
+  setStaglioAFreddo: (v) => set(s => ({ state: { ...s.state, staglioAFreddo: v } })),
 
   updatePhase: (id, changes) =>
     set(s => ({

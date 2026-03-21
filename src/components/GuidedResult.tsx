@@ -223,16 +223,8 @@ export function GuidedResult({ result, cookingDay, cookingTime, onReset, onOpenA
         </table>`;
     }
 
-    // Fermentation summary rows
+    // Fermentation summary (only totals — individual phases are already shown above)
     const totalH = phases.reduce((s, p) => s + p.hours, 0);
-    const fermentRows = phases.map(p => {
-      const s = schedule[p.id];
-      const orari = s ? ` · ${absToLabel(s.start)} → ${absToLabel(s.end)}` : '';
-      return `<div style="display:flex; justify-content:space-between; font-size:12px; color:#555; margin-bottom:3px; padding:3px 0; border-bottom:1px solid #f5f5f5;">
-        <span>${p.label}</span>
-        <span>${phaseHoursLabel(p.hours)} @ ${p.temperatureCelsius}°C${orari}</span>
-      </div>`;
-    }).join('');
 
     el.innerHTML = `
       <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -291,7 +283,6 @@ export function GuidedResult({ result, cookingDay, cookingTime, onReset, onOpenA
             </div>
           </div>
           <div style="font-size:11px; color:#888; font-style:italic; margin-bottom:8px;">${quality}</div>
-          ${fermentRows}
         </div>
 
         <!-- FARINA CONSIGLIATA -->
@@ -371,8 +362,8 @@ export function GuidedResult({ result, cookingDay, cookingTime, onReset, onOpenA
             <div key={i} className="flex items-center gap-0 flex-shrink-0">
               {item.kind === 'staglio' ? (
                 <div
-                  className="px-2 py-2 rounded-lg text-white text-center shadow-sm"
-                  style={{ backgroundColor: STAGLIO_COLOR, minWidth: 56 }}
+                  className="px-3 py-2 rounded-lg text-white text-center shadow-sm flex flex-col justify-center items-center"
+                  style={{ backgroundColor: STAGLIO_COLOR, minWidth: 70, minHeight: 88 }}
                 >
                   <div className="text-[11px] font-semibold">✂️ Staglio</div>
                   {item.atMinutes !== undefined && (
