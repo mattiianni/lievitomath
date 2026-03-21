@@ -3,6 +3,7 @@ import { useCalculation } from '../../hooks/useCalculation';
 import { useDoughStore } from '../../store/useDoughStore';
 import { SectionCard } from '../ui/SectionCard';
 import { yeastTypeLabel } from '../../engine/fermentation';
+import { calcSchedule, absToLabel } from '../../utils/cookingSchedule';
 
 const MODE_NAME: Record<string, string> = {
   napoletana: 'Pizza Napoletana',
@@ -10,12 +11,21 @@ const MODE_NAME: Record<string, string> = {
   pane: 'Pane',
 };
 
+function phaseTimeLabel(hours: number): string {
+  if (Number.isInteger(hours)) return hours === 1 ? '1h' : `${hours}h`;
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
 export function IngredientsCard() {
   const result = useCalculation();
   const mode = useDoughStore(s => s.state.mode);
   const state = useDoughStore(s => s.state);
   const userFlourBanner = useDoughStore(s => s.userFlourBanner);
   const setUserFlourBanner = useDoughStore(s => s.setUserFlourBanner);
+  const cookingDay = useDoughStore(s => s.cookingDay);
+  const cookingTime = useDoughStore(s => s.cookingTime);
 
   // Auto-dismiss banner dopo 7 secondi
   useEffect(() => {
@@ -32,7 +42,7 @@ export function IngredientsCard() {
     );
   }
 
-  const { ingredients, yeastPercent, totalDoughWeight, prefermentiSplit, effectiveYeastType, flourWeight } = result;
+  const { ingredients, yeastPercent, totalDoughWeight, prefermentiSplit, effectiveYeastType, flourWeight, cumulativeF } = result;
 
   const isSourdoughDirect = !prefermentiSplit && (effectiveYeastType === 'madre' || effectiveYeastType === 'licoli');
 
@@ -46,12 +56,25 @@ export function IngredientsCard() {
     { label: yeastTypeLabel(effectiveYeastType), value: ingredients.yeast, unit: 'g', bold: true, accent: true },
   ];
 
+  // Dati per riepilogo fermentazione
+  const activePhasesForSummary = state.phases.filter(p => p.active && p.hours > 0);
+  const totalHoursSum = activePhasesForSummary.reduce((s, p) => s + p.hours, 0);
+  const schedule = calcSchedule(activePhasesForSummary, cookingDay, cookingTime);
+
+  let quality = '';
+  if (cumulativeF < 3) quality = 'Fermentazione rapida — impasto giovane';
+  else if (cumulativeF < 8) quality = 'Fermentazione breve — per cottura in giornata';
+  else if (cumulativeF < 16) quality = 'Fermentazione media — buon equilibrio aromi';
+  else if (cumulativeF < 28) quality = 'Fermentazione lunga — aromi complessi, buona digeribilità';
+  else quality = 'Fermentazione molto lunga — massima maturazione';
+
   function handlePrint() {
     const el = document.getElementById('print-view');
     if (!el) return;
 
     const date = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
     const phases = state.phases.filter(p => p.active && p.hours > 0);
+    const printSchedule = calcSchedule(phases, cookingDay, cookingTime);
 
     const phaseColors: Record<string, string> = {
       biga:     '#c9a840',
@@ -69,6 +92,36 @@ export function IngredientsCard() {
       const m = Math.round((hours - h) * 60);
       return h > 0 ? `${h}h ${m}min` : `${m} min`;
     }
+
+    const phasesHtml = phases.map(p => {
+      const color = phaseColors[p.id] ?? '#6b7280';
+      const s = printSchedule[p.id];
+      const orariLine = s
+        ? `<div style="font-size:11px; color:#666; margin-top:4px;">dalle ${absToLabel(s.start)} alle ${absToLabel(s.end)}</div>`
+        : '';
+      return `
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; padding:10px 14px; border-radius:10px; border-left:4px solid ${color}; background:#fafafa; margin-bottom:4px;">
+        <span style="font-size:14px; font-weight:600; color:#222;">${p.label}</span>
+        <div style="text-align:right;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="background:${color}; color:white; border-radius:6px; padding:3px 10px; font-size:13px; font-weight:700;">${phaseHoursLabel(p.hours)}</span>
+            <span style="font-size:13px; color:#555;">a</span>
+            <span style="background:#1e3a5f; color:white; border-radius:6px; padding:3px 10px; font-size:13px; font-weight:700;">${p.temperatureCelsius}°C</span>
+          </div>
+          ${orariLine}
+        </div>
+      </div>`;
+    }).join('');
+
+    const totalPrintH = phases.reduce((s, p) => s + p.hours, 0);
+    const fermentSummaryRows = phases.map(p => {
+      const s = printSchedule[p.id];
+      const orari = s ? ` · ${absToLabel(s.start)} → ${absToLabel(s.end)}` : '';
+      return `<div style="display:flex; justify-content:space-between; font-size:12px; color:#555; margin-bottom:3px; padding:3px 0; border-bottom:1px solid #f5f5f5;">
+        <span>${p.label}</span>
+        <span>${phaseHoursLabel(p.hours)} @ ${p.temperatureCelsius}°C${orari}</span>
+      </div>`;
+    }).join('');
 
     el.innerHTML = `
       <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -176,21 +229,32 @@ export function IngredientsCard() {
             <div style="width:4px; height:20px; background:#0ea5e9; border-radius:2px;"></div>
             <h2 style="font-size:14px; font-weight:700; color:#0ea5e9; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Fasi di fermentazione</h2>
           </div>
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            ${phases.map(p => {
-              const color = phaseColors[p.id] ?? '#6b7280';
-              return `
-              <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-radius:10px; border-left:4px solid ${color}; background:#fafafa;">
-                <span style="font-size:14px; font-weight:600; color:#222;">${p.label}</span>
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <span style="background:${color}; color:white; border-radius:6px; padding:3px 10px; font-size:13px; font-weight:700;">${phaseHoursLabel(p.hours)}</span>
-                  <span style="font-size:13px; color:#555;">a</span>
-                  <span style="background:#1e3a5f; color:white; border-radius:6px; padding:3px 10px; font-size:13px; font-weight:700;">${p.temperatureCelsius}°C</span>
-                </div>
-              </div>`;
-            }).join('')}
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            ${phasesHtml}
           </div>
         </div>
+
+        <!-- RIEPILOGO FERMENTAZIONE -->
+        ${phases.length > 0 ? `
+        <div style="margin-bottom:12px; border-top:2px solid #f0f0f0; padding-top:12px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+            <div style="width:4px; height:20px; background:#8b5cf6; border-radius:2px;"></div>
+            <h2 style="font-size:14px; font-weight:700; color:#8b5cf6; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Riepilogo fermentazione</h2>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+            <div style="background:#f5f5f5; border-radius:8px; padding:10px; text-align:center;">
+              <div style="font-size:11px; color:#888; margin-bottom:4px;">Ore totali</div>
+              <div style="font-size:18px; font-weight:700; color:#333;">${totalPrintH}h</div>
+            </div>
+            <div style="background:#fff7ed; border-radius:8px; padding:10px; text-align:center;">
+              <div style="font-size:11px; color:#888; margin-bottom:4px;">Ferment. equiv. 24°C</div>
+              <div style="font-size:18px; font-weight:700; color:#ea580c;">${cumulativeF.toFixed(1)}h</div>
+            </div>
+          </div>
+          <div style="font-size:11px; color:#888; font-style:italic; margin-bottom:8px;">${quality}</div>
+          ${fermentSummaryRows}
+        </div>
+        ` : ''}
 
         <!-- FARINE -->
         <div style="margin-bottom:16px;">
@@ -363,6 +427,44 @@ export function IngredientsCard() {
         </svg>
         Stampa / Salva PDF
       </button>
+
+      {/* RIEPILOGO FERMENTAZIONE - inline sotto gli ingredienti */}
+      {activePhasesForSummary.length > 0 && (
+        <>
+          <hr className="border-neutral-200 dark:border-neutral-700 my-4" />
+          <div>
+            <h3 className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">
+              Riepilogo Fermentazione
+            </h3>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className="rounded-xl bg-neutral-100 dark:bg-neutral-800 p-3 text-center">
+                <p className="text-xs text-neutral-400 mb-1">Ore totali</p>
+                <p className="text-xl font-bold text-neutral-800 dark:text-neutral-200">{totalHoursSum}h</p>
+              </div>
+              <div className="rounded-xl bg-brand-50 dark:bg-brand-900/20 p-3 text-center">
+                <p className="text-xs text-neutral-400 mb-1">Ferment. equiv. (24°C)</p>
+                <p className="text-xl font-bold text-brand-600 dark:text-brand-400">{cumulativeF.toFixed(1)}h</p>
+              </div>
+            </div>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 italic mb-3">{quality}</p>
+            <div className="space-y-2">
+              {activePhasesForSummary.map(p => (
+                <div key={p.id} className="flex justify-between items-start text-xs text-neutral-500 dark:text-neutral-400">
+                  <span className="font-medium">{p.label}</span>
+                  <div className="text-right">
+                    <div>{phaseTimeLabel(p.hours)} @ {p.temperatureCelsius}°C</div>
+                    {schedule[p.id] && (
+                      <div className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono">
+                        {absToLabel(schedule[p.id].start)} → {absToLabel(schedule[p.id].end)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </SectionCard>
     </div>
   );
