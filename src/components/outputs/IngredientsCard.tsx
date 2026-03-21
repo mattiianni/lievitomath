@@ -277,14 +277,14 @@ export function IngredientsCard() {
           </table>
         </div>
 
-        <!-- RIEPILOGO FERMENTAZIONE (solo totali) -->
+        <!-- RIEPILOGO FERMENTAZIONE -->
         ${phases.length > 0 ? `
         <div style="margin-bottom:12px; border-top:2px solid #f0f0f0; padding-top:12px;">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
             <div style="width:4px; height:20px; background:#8b5cf6; border-radius:2px;"></div>
             <h2 style="font-size:14px; font-weight:700; color:#8b5cf6; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Riepilogo fermentazione</h2>
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
             <div style="background:#f5f5f5; border-radius:8px; padding:10px; text-align:center;">
               <div style="font-size:11px; color:#888; margin-bottom:4px;">Ore totali</div>
               <div style="font-size:18px; font-weight:700; color:#333;">${totalPrintH}h</div>
@@ -294,7 +294,24 @@ export function IngredientsCard() {
               <div style="font-size:18px; font-weight:700; color:#ea580c;">${cumulativeF.toFixed(1)}h</div>
             </div>
           </div>
-          <div style="font-size:11px; color:#888; font-style:italic;">${quality}</div>
+          <div style="font-size:11px; color:#888; font-style:italic; margin-bottom:8px;">${quality}</div>
+          ${phases.map(p => {
+            const s = printSchedule[p.id];
+            const orari = s ? ` · da ${absToLabel(s.start)} a ${absToLabel(s.end)}` : '';
+            let row = `<div style="display:flex; justify-content:space-between; font-size:12px; color:#555; margin-bottom:3px; padding:3px 0; border-bottom:1px solid #f5f5f5;">
+              <span>${p.label}</span>
+              <span>${phaseHoursLabel(p.hours)} @ ${p.temperatureCelsius}°C${orari}</span>
+            </div>`;
+            if (printStaglioAfterPhaseId === p.id) {
+              const staglioTime = s?.end;
+              const staglioLabel = staglioTime !== undefined ? absToLabel(staglioTime) : '';
+              row += `<div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600; color:#7c3aed; margin-bottom:3px; padding:3px 6px; border-bottom:1px solid #e8e0fa; background:#f5f0ff; border-radius:4px;">
+                <span>✂️ Staglio</span>
+                <span>${staglioLabel}</span>
+              </div>`;
+            }
+            return row;
+          }).join('')}
         </div>
         ` : ''}
 

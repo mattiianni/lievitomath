@@ -7,8 +7,8 @@ export function StaglioSelector() {
   const staglioAFreddo  = useDoughStore(s => s.state.staglioAFreddo ?? false);
   const setStaglioAFreddo = useDoughStore(s => s.setStaglioAFreddo);
 
-  // Solo per napoletana e teglia
-  if (mode === 'pane') return null;
+  // Solo per teglia
+  if (mode !== 'teglia') return null;
 
   const hasFrigo = phases.some(p => p.id === 'frigo' && p.active);
 
@@ -62,14 +62,14 @@ export function StaglioSelector() {
           <button
             key={String(opt.val)}
             onClick={() => setStaglioAFreddo(opt.val)}
-            className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left ${
+            className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left whitespace-normal ${
               staglioAFreddo === opt.val
                 ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20'
                 : 'border-transparent bg-neutral-100 dark:bg-neutral-800 hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-900/10'
             }`}
           >
-            <span className="text-2xl">{opt.emoji}</span>
-            <div>
+            <span className="text-2xl flex-shrink-0">{opt.emoji}</span>
+            <div className="min-w-0">
               <div className="font-semibold text-sm text-neutral-900 dark:text-white">{opt.label}</div>
               <div className="text-xs text-neutral-500 dark:text-neutral-400">{opt.sub}</div>
             </div>
