@@ -372,19 +372,19 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
       {/* ⑥ STAGLIO TIMING (solo se frigo = sì) */}
       {step >= 6 && answers.usesFridge && (
         <StepCard n={6} title="Quando fai lo staglio?" done={step > 6}
-          doneLabel={answers.staglioAFreddo ? '🧆 Panetti in frigo' : '🫗 Massa in frigo'}
+          doneLabel={answers.staglioAFreddo ? '⏪ Panetti in frigo' : '⏩ Massa in frigo'}
           onEdit={() => goBack(6)}>
           <div className="flex flex-col gap-3">
             {[
               {
                 val: false,
-                emoji: '🫗',
+                emoji: '⏩',
                 label: 'Staglio dopo il frigo',
                 sub: 'La massa intera va in frigo. Staglio e appretto lungo all\'uscita.',
               },
               {
                 val: true,
-                emoji: '🧆',
+                emoji: '⏪',
                 label: 'Staglio prima del frigo',
                 sub: 'Formi i panetti, poi vanno in frigo. Appretto breve all\'uscita.',
               },
