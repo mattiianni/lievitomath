@@ -297,24 +297,7 @@ export function IngredientsCard() {
               <div style="font-size:18px; font-weight:700; color:#ea580c;">${cumulativeF.toFixed(1)}h</div>
             </div>
           </div>
-          <div style="font-size:11px; color:#888; font-style:italic; margin-bottom:8px;">${quality}</div>
-          ${phases.map(p => {
-            const s = printSchedule[p.id];
-            const orari = s ? ` · da ${absToLabel(s.start)} a ${absToLabel(s.end)}` : '';
-            let row = `<div style="display:flex; justify-content:space-between; font-size:12px; color:#555; margin-bottom:3px; padding:3px 0; border-bottom:1px solid #f5f5f5;">
-              <span>${p.label}</span>
-              <span>${phaseHoursLabel(p.hours)} @ ${p.temperatureCelsius}°C${orari}</span>
-            </div>`;
-            if (printStaglioAfterPhaseId === p.id) {
-              const staglioTime = s?.end;
-              const staglioLabel = staglioTime !== undefined ? absToLabel(staglioTime) : '';
-              row += `<div style="display:flex; justify-content:space-between; font-size:12px; font-weight:600; color:#7c3aed; margin-bottom:3px; padding:3px 6px; border-bottom:1px solid #e8e0fa; background:#f5f0ff; border-radius:4px;">
-                <span>✂️ Staglio</span>
-                <span>${staglioLabel}</span>
-              </div>`;
-            }
-            return row;
-          }).join('')}
+          <div style="font-size:11px; color:#888; font-style:italic;">${quality}</div>
         </div>
         ` : ''}
 
