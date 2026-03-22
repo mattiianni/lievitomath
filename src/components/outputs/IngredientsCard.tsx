@@ -79,8 +79,8 @@ export function IngredientsCard() {
     } else if (mode === 'napoletana') {
       staglioAfterPhaseId = 'frigo';
     } else {
-      // teglia con frigo
-      staglioAfterPhaseId = staglioAFreddo ? 'puntata' : 'frigo';
+      // teglia con frigo: prima frigo → dopo impasto; dopo frigo → dopo frigo
+      staglioAfterPhaseId = staglioAFreddo ? 'impasto' : 'frigo';
     }
   }
 
@@ -118,7 +118,7 @@ export function IngredientsCard() {
       } else if (mode === 'napoletana') {
         printStaglioAfterPhaseId = 'frigo';
       } else {
-        printStaglioAfterPhaseId = staglioAFreddo ? 'puntata' : 'frigo';
+        printStaglioAfterPhaseId = staglioAFreddo ? 'impasto' : 'frigo';
       }
     }
 
@@ -528,11 +528,8 @@ export function IngredientsCard() {
                   <div key="staglio" className="flex justify-between items-start text-sm text-neutral-600 dark:text-neutral-300">
                     <span className="font-medium">Staglio</span>
                     <div className="text-right">
-                      {schedule[p.id] && (
-                        <div className="text-xs text-neutral-400 dark:text-neutral-500 font-mono">
-                          {absToLabel(schedule[p.id].end)}
-                        </div>
-                      )}
+                      <div>{schedule[p.id] ? absToLabel(schedule[p.id].end) : ''}</div>
+                      <div className="text-xs text-neutral-400 dark:text-neutral-500 font-mono invisible">–</div>
                     </div>
                   </div>,
                 ];

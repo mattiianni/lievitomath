@@ -101,8 +101,8 @@ export function GuidedResult({ result, cookingDay, cookingTime, onReset, onOpenA
   phases.forEach(phase => {
     displayItems.push({ kind: 'phase', phase });
     if (hasFrigo) {
-      if (staglioAFreddo && phase.id === 'puntata') {
-        // Staglio tra puntata e frigo (staglio prima del frigo)
+      if (staglioAFreddo && phase.id === 'impasto') {
+        // Staglio dopo impasto, prima di puntata (staglio prima del frigo)
         displayItems.push({ kind: 'staglio', atMinutes: schedule[phase.id]?.end });
       } else if (!staglioAFreddo && phase.id === 'frigo') {
         // Staglio tra frigo e appretto (staglio dopo il frigo)
@@ -147,7 +147,7 @@ export function GuidedResult({ result, cookingDay, cookingTime, onReset, onOpenA
         </div>`);
 
       if (hasFrigo) {
-        if (staglioAFreddo && phase.id === 'puntata') {
+        if (staglioAFreddo && phase.id === 'impasto') {
           const staglioTime = schedule[phase.id]?.end;
           const staglioLabel = staglioTime !== undefined ? absToLabel(staglioTime) : '';
           phaseRowsHtml.push(`
