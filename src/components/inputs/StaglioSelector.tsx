@@ -43,13 +43,13 @@ export function StaglioSelector() {
   const options = [
     {
       val: false,
-      emoji: '🫗',
+      emoji: '⏩',
       label: 'Staglio dopo il frigo',
       sub: 'La massa intera va in frigo. Staglio e appretto lungo all\'uscita.',
     },
     {
       val: true,
-      emoji: '🧆',
+      emoji: '⏪',
       label: 'Staglio prima del frigo',
       sub: 'Formi i panetti, poi vanno in frigo. Appretto breve all\'uscita.',
     },
