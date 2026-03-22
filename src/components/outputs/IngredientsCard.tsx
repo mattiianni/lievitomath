@@ -152,13 +152,16 @@ export function IngredientsCard() {
         const staglioTime = s?.end;
         const staglioLabel = staglioTime !== undefined ? absToLabel(staglioTime) : '';
         const staglioRow = `
-          <tr style="background:#f5f0ff; border-bottom:1px solid #e8e0fa;">
-            <td style="padding:5px 8px; width:28%;">
-              <span style="font-size:13px; font-weight:700; color:#7c3aed;">✂️ Staglio</span>
+          <tr style="border-bottom:1px solid #f0f0f0;">
+            <td style="padding:6px 8px; width:28%;">
+              <span style="display:inline-flex; align-items:center; gap:6px;">
+                <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#6b7280; flex-shrink:0;"></span>
+                <span style="font-size:13px; font-weight:600; color:#222;">Staglio</span>
+              </span>
             </td>
-            <td style="padding:5px 4px; width:17%;"></td>
-            <td style="padding:5px 4px; width:17%;"></td>
-            <td style="padding:5px 8px; text-align:right; width:38%; color:#7c3aed; font-size:11px; font-weight:600;">${staglioLabel}</td>
+            <td style="padding:6px 4px; width:17%;"></td>
+            <td style="padding:6px 4px; width:17%;"></td>
+            <td style="padding:6px 8px; text-align:right; width:38%; color:#555; font-size:11px;">${staglioLabel}</td>
           </tr>`;
         return phaseRow + staglioRow;
       }
@@ -505,9 +508,9 @@ export function IngredientsCard() {
             </div>
             <p className="text-sm text-neutral-500 dark:text-neutral-400 italic mb-3">{quality}</p>
             <div className="space-y-2">
-              {activePhasesForSummary.map(p => (
-                <div key={p.id}>
-                  <div className="flex justify-between items-start text-sm text-neutral-600 dark:text-neutral-300">
+              {activePhasesForSummary.flatMap(p => {
+                const phaseRow = (
+                  <div key={p.id} className="flex justify-between items-start text-sm text-neutral-600 dark:text-neutral-300">
                     <span className="font-medium">{p.label}</span>
                     <div className="text-right">
                       <div>{phaseTimeLabel(p.hours)} @ {p.temperatureCelsius}°C</div>
@@ -518,21 +521,22 @@ export function IngredientsCard() {
                       )}
                     </div>
                   </div>
-                  {/* Staglio — stesso stile delle altre fasi */}
-                  {p.id === staglioAfterPhaseId && (
-                    <div className="flex justify-between items-start text-sm text-neutral-600 dark:text-neutral-300 mt-2">
-                      <span className="font-medium">Staglio</span>
+                );
+                if (p.id !== staglioAfterPhaseId) return [phaseRow];
+                return [
+                  phaseRow,
+                  <div key="staglio" className="flex justify-between items-start text-sm text-neutral-600 dark:text-neutral-300">
+                    <span className="font-medium">Staglio</span>
+                    <div className="text-right">
                       {schedule[p.id] && (
-                        <div className="text-right">
-                          <div className="text-xs text-neutral-400 dark:text-neutral-500 font-mono">
-                            {absToLabel(schedule[p.id].end)}
-                          </div>
+                        <div className="text-xs text-neutral-400 dark:text-neutral-500 font-mono">
+                          {absToLabel(schedule[p.id].end)}
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
-              ))}
+                  </div>,
+                ];
+              })}
             </div>
           </div>
         </>
