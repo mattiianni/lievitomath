@@ -61,6 +61,7 @@ export function IngredientsCard() {
   const totalHoursSum = activePhasesForSummary.reduce((s, p) => s + p.hours, 0);
   const schedule = calcSchedule(activePhasesForSummary, cookingDay, cookingTime);
 
+
   let quality = '';
   if (cumulativeF < 3) quality = 'Fermentazione rapida — impasto giovane';
   else if (cumulativeF < 8) quality = 'Fermentazione breve — per cottura in giornata';
@@ -171,13 +172,41 @@ export function IngredientsCard() {
 
     const totalPrintH = phases.reduce((s, p) => s + p.hours, 0);
 
+    // Alert temperatura post-frigo (stessa logica dell'UI)
+    const frigoPrint    = phases.find(p => p.id === 'frigo');
+    const apprettoPrint = phases.find(p => p.id === 'appretto');
+    let tempAlertHtml = '';
+    if (frigoPrint && apprettoPrint) {
+      const T_frigo  = frigoPrint.temperatureCelsius;
+      const T_amb    = apprettoPrint.temperatureCelsius;
+      const T_target = Math.max(Math.min(T_amb - 1, 21), 16);
+      const k        = 0.5;
+      if (T_frigo < T_target) {
+        const T_after = T_amb + (T_frigo - T_amb) * Math.exp(-k * apprettoPrint.hours);
+        if (T_after < T_target) {
+          const T_afterRnd = Math.round(T_after);
+          let suggestion = '';
+          if (T_amb > T_target) {
+            const minH = (1 / k) * Math.log((T_amb - T_frigo) / (T_amb - T_target));
+            const h = Math.floor(minH); const m = Math.round((minH - h) * 60);
+            suggestion = ` Si consigliano almeno <strong>${h > 0 ? `${h}h ${m > 0 ? m + 'min' : ''}` : `${m} min`}</strong> per raggiungere ~${T_target}°C.`;
+          }
+          tempAlertHtml = `
+            <div style="background:#fef3c7; border:1px solid #f59e0b; border-radius:8px; padding:10px 12px; margin-top:8px; font-size:12px; color:#92400e; print-color-adjust:exact; -webkit-print-color-adjust:exact;">
+              <strong>⚠️ Impasto ancora freddo!</strong> Dopo ${phaseHoursLabel(apprettoPrint.hours)} a ${T_amb}°C l'impasto sarà ancora a ~<strong>${T_afterRnd}°C</strong> (uscito dal frigo a ${T_frigo}°C).${suggestion}
+            </div>`;
+        }
+      }
+    }
+
     el.innerHTML = `
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+      <style>@page { size: A4 portrait; margin: 8mm 10mm; } * { box-sizing: border-box; }</style>
       <div style="font-family:'Inter',sans-serif; max-width:100%; margin:0 auto; color:#1a1a1a; font-size:11px;">
 
         <!-- HEADER -->
-        <div style="background:linear-gradient(135deg,#ea580c,#f97316); border-radius:10px; padding:12px 16px; margin-bottom:14px; color:white; print-color-adjust:exact; -webkit-print-color-adjust:exact;">
+        <div style="background:linear-gradient(135deg,#ea580c,#f97316); border-radius:10px; padding:10px 14px; margin-bottom:10px; color:white; print-color-adjust:exact; -webkit-print-color-adjust:exact;">
           <div style="display:flex; align-items:center; justify-content:space-between;">
             <h1 style="font-family:'Lobster',cursive; font-size:24px; margin:0; letter-spacing:0.5px; text-shadow:0 1px 3px rgba(0,0,0,0.35);">LievitoMath</h1>
             <div style="text-align:right; font-size:12px; opacity:0.85;">${date}</div>
@@ -191,8 +220,8 @@ export function IngredientsCard() {
         </div>
 
         <!-- INGREDIENTI -->
-        <div style="margin-bottom:12px;">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+        <div style="margin-bottom:8px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
             <div style="width:4px; height:20px; background:#ea580c; border-radius:2px;"></div>
             <h2 style="font-size:14px; font-weight:700; color:#ea580c; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Ingredienti</h2>
           </div>
@@ -270,20 +299,21 @@ export function IngredientsCard() {
         </div>
 
         <!-- FASI DI FERMENTAZIONE -->
-        <div style="margin-bottom:12px;">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+        <div style="margin-bottom:8px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
             <div style="width:4px; height:20px; background:#0ea5e9; border-radius:2px;"></div>
             <h2 style="font-size:14px; font-weight:700; color:#0ea5e9; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Fasi di fermentazione</h2>
           </div>
           <table style="width:100%; border-collapse:collapse;">
             ${phasesHtml}
           </table>
+          ${tempAlertHtml}
         </div>
 
         <!-- RIEPILOGO FERMENTAZIONE -->
         ${phases.length > 0 ? `
-        <div style="margin-bottom:12px; border-top:2px solid #f0f0f0; padding-top:12px;">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+        <div style="margin-bottom:8px; border-top:2px solid #f0f0f0; padding-top:8px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
             <div style="width:4px; height:20px; background:#8b5cf6; border-radius:2px;"></div>
             <h2 style="font-size:14px; font-weight:700; color:#8b5cf6; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Riepilogo fermentazione</h2>
           </div>
@@ -302,23 +332,23 @@ export function IngredientsCard() {
         ` : ''}
 
         <!-- FARINE -->
-        <div style="margin-bottom:16px;">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+        <div style="margin-bottom:8px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
             <div style="width:4px; height:20px; background:#16a34a; border-radius:2px;"></div>
             <h2 style="font-size:14px; font-weight:700; color:#16a34a; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Blend farine</h2>
           </div>
           <table style="width:100%; border-collapse:collapse; font-size:13px;">
             ${state.flours.map((f, i) => `
               <tr style="background:${i % 2 === 0 ? '#f9fafb' : 'white'};">
-                <td style="padding:8px 8px; font-weight:600;">${f.brand} ${f.name}</td>
-                <td style="padding:8px 4px; text-align:center; color:#888; font-size:12px;">W${f.w}</td>
-                <td style="padding:8px 8px; text-align:right; font-weight:700; color:#ea580c;">${f.percentage}%</td>
+                <td style="padding:5px 8px; font-weight:600;">${f.brand} ${f.name}</td>
+                <td style="padding:5px 4px; text-align:center; color:#888; font-size:12px;">W${f.w}</td>
+                <td style="padding:5px 8px; text-align:right; font-weight:700; color:#ea580c;">${f.percentage}%</td>
               </tr>
             `).join('')}
           </table>
         </div>
 
-        <p style="font-size:10px; color:#ccc; text-align:center; margin-top:28px; padding-top:12px; border-top:1px solid #f0f0f0;">
+        <p style="font-size:10px; color:#ccc; text-align:center; margin-top:12px; padding-top:8px; border-top:1px solid #f0f0f0;">
           Generato con <strong style="color:#ea580c;">LievitoMath</strong> · Algoritmo Q10 fermentativo · Disciplinare AVPN
         </p>
       </div>

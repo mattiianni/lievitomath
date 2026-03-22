@@ -22,7 +22,7 @@ export default function App() {
       <Header />
 
       {/* Print view — visibile solo in stampa */}
-      <div id="print-view" className="print-only px-8 py-6" />
+      <div id="print-view" className="print-only" />
 
       <main className="max-w-3xl mx-auto px-4 py-5 print-hidden">
         <div className="flex items-center gap-3 mb-5">
