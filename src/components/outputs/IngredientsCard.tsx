@@ -476,7 +476,7 @@ export function IngredientsCard() {
       {/* Pulsante STAMPA */}
       <button
         onClick={handlePrint}
-        className="w-full py-2.5 rounded-xl border-2 border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400 font-semibold text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2"
+        className="w-full py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2 shadow-sm"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -490,7 +490,7 @@ export function IngredientsCard() {
         <>
           <hr className="border-neutral-200 dark:border-neutral-700 my-4" />
           <div>
-            <h3 className="text-xs font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">
+            <h3 className="text-sm font-bold text-neutral-600 dark:text-neutral-300 uppercase tracking-wide mb-3">
               Riepilogo Fermentazione
             </h3>
             <div className="grid grid-cols-2 gap-3 mb-3">
@@ -503,29 +503,31 @@ export function IngredientsCard() {
                 <p className="text-xl font-bold text-brand-600 dark:text-brand-400">{cumulativeF.toFixed(1)}h</p>
               </div>
             </div>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 italic mb-3">{quality}</p>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 italic mb-3">{quality}</p>
             <div className="space-y-2">
               {activePhasesForSummary.map(p => (
                 <div key={p.id}>
-                  <div className="flex justify-between items-start text-xs text-neutral-500 dark:text-neutral-400">
+                  <div className="flex justify-between items-start text-sm text-neutral-600 dark:text-neutral-300">
                     <span className="font-medium">{p.label}</span>
                     <div className="text-right">
                       <div>{phaseTimeLabel(p.hours)} @ {p.temperatureCelsius}°C</div>
                       {schedule[p.id] && (
-                        <div className="text-[10px] text-neutral-400 dark:text-neutral-500 font-mono">
+                        <div className="text-xs text-neutral-400 dark:text-neutral-500 font-mono">
                           {absToLabel(schedule[p.id].start)} → {absToLabel(schedule[p.id].end)}
                         </div>
                       )}
                     </div>
                   </div>
-                  {/* Staglio marker dopo la fase corretta */}
+                  {/* Staglio — stesso stile delle altre fasi */}
                   {p.id === staglioAfterPhaseId && (
-                    <div className="flex justify-between items-center text-xs mt-1.5 px-2 py-1.5 rounded-lg bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800">
-                      <span className="font-semibold text-violet-700 dark:text-violet-400">✂️ Staglio</span>
+                    <div className="flex justify-between items-start text-sm text-neutral-600 dark:text-neutral-300 mt-2">
+                      <span className="font-medium">Staglio</span>
                       {schedule[p.id] && (
-                        <span className="text-[10px] font-mono text-violet-600 dark:text-violet-500">
-                          {absToLabel(schedule[p.id].end)}
-                        </span>
+                        <div className="text-right">
+                          <div className="text-xs text-neutral-400 dark:text-neutral-500 font-mono">
+                            {absToLabel(schedule[p.id].end)}
+                          </div>
+                        </div>
                       )}
                     </div>
                   )}
