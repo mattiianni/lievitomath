@@ -63,6 +63,7 @@ export function GuidedResult({ result, cookingDay, cookingTime, onReset, onOpenA
   );
 
   const isSourdoughDirect = !prefermentiSplit && (effectiveYeastType === 'madre' || effectiveYeastType === 'licoli');
+  const isNaturalPrefermento = !!prefermentiSplit && (effectiveYeastType === 'madre' || effectiveYeastType === 'licoli');
 
   const mainRows: { label: string; value: string; bold?: boolean }[] = [];
 
@@ -70,8 +71,8 @@ export function GuidedResult({ result, cookingDay, cookingTime, onReset, onOpenA
     const { prefermento, mainDough } = prefermentiSplit;
     mainRows.push(
       { label: `${prefermento.type === 'biga' ? 'Biga' : 'Poolish'} (${prefermento.flourPercent}% farina)`, value: `${prefermento.totalWeight}g`, bold: true },
-      { label: '  ↳ Farina', value: `${prefermento.flour}g` },
-      { label: '  ↳ Acqua', value: `${prefermento.water}g` },
+      { label: prefermento.starterFlour ? `  ↳ Farina (+${prefermento.starterFlour}g nello starter)` : '  ↳ Farina', value: `${prefermento.flour}g` },
+      { label: prefermento.starterWater ? `  ↳ Acqua (+${prefermento.starterWater}g nello starter)` : '  ↳ Acqua', value: `${prefermento.water}g` },
       { label: `  ↳ ${yeastTypeLabel(effectiveYeastType)}`, value: `${prefermento.yeast}g` },
       { label: `── Farina da aggiungere`, value: `${mainDough.flourToAdd}g` },
       { label: `── Acqua da aggiungere`, value: `${mainDough.waterToAdd}g` },
@@ -346,7 +347,7 @@ export function GuidedResult({ result, cookingDay, cookingTime, onReset, onOpenA
         </div>
         <div className="px-5 py-3 bg-gray-50/80 dark:bg-[#0A1228]/40">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            {yeastTypeLabel(effectiveYeastType)}: <strong className="text-gray-700 dark:text-gray-200">{yeastPercent.toFixed(2)}%</strong> sulla farina
+            {isNaturalPrefermento ? 'Starter' : yeastTypeLabel(effectiveYeastType)}: <strong className="text-gray-700 dark:text-gray-200">{isNaturalPrefermento ? yeastPercent.toFixed(1) : yeastPercent.toFixed(2)}%</strong> sulla farina
           </p>
         </div>
       </div>

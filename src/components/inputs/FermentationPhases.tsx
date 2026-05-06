@@ -42,6 +42,19 @@ function formatHours(h: number) {
   return `${mm}min`;
 }
 
+function getPhaseDurationBounds(phase: { id: string; k: number }, isPrefermento: boolean) {
+  return {
+    min: phase.id === 'impasto' ? 0.5 : phase.k === 0 ? 0 : 0.5,
+    max: phase.id === 'impasto' ? 2 : phase.id === 'frigo' ? 72 : isPrefermento ? 48 : 24,
+    step: phase.id === 'impasto' ? 0.25 : 0.5,
+  };
+}
+
+function clampToStep(value: number, min: number, max: number, step: number) {
+  const clamped = Math.min(max, Math.max(min, value));
+  return parseFloat((Math.round(clamped / step) * step).toFixed(10));
+}
+
 export function FermentationPhases() {
   const phases      = useDoughStore(s => s.state.phases);
   const updatePhase = useDoughStore(s => s.updatePhase);
@@ -59,6 +72,22 @@ export function FermentationPhases() {
   const [autoEnabled, setAutoEnabled] = useState<Record<string, boolean>>({});
   const [autoAmbientTemp, setAutoAmbientTemp] = useState<Record<string, number>>({ biga: 20, poolish: 20 });
 
+  const updatePhaseTime = (
+    phaseId: string,
+    currentHours: number,
+    edge: 'start' | 'end',
+    deltaMinutes: number,
+    bounds: { min: number; max: number; step: number }
+  ) => {
+    const deltaHours = deltaMinutes / 60;
+    const nextHours = edge === 'start'
+      ? currentHours - deltaHours
+      : currentHours + deltaHours;
+    updatePhase(phaseId, {
+      hours: clampToStep(nextHours, bounds.min, bounds.max, bounds.step),
+    });
+  };
+
   return (
     <SectionCard title="Fasi di fermentazione">
       <div className="flex flex-col gap-3">
@@ -73,6 +102,8 @@ export function FermentationPhases() {
           const anyPrefermento = phases.some(p => PREFERMENTI.includes(p.id) && p.active);
           const isAutolisiDisabled = phase.id === 'autolisi' && anyPrefermento;
           const isDisabled = isBigaDisabled || isAutolisiDisabled;
+          const durationBounds = getPhaseDurationBounds(phase, isPrefermento);
+          const timeStepMinutes = phase.id === 'impasto' ? 15 : 30;
 
           return (
             <div key={phase.id}>
@@ -101,9 +132,51 @@ export function FermentationPhases() {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {/* Pillola orario */}
                     {phase.active && !isDisabled && schedule[phase.id] && (
-                      <span className="text-xs px-2 py-0.5 rounded-md border border-neutral-400 dark:border-neutral-500 text-neutral-600 dark:text-neutral-300 whitespace-nowrap flex-shrink-0 font-medium">
-                        {absToLabel(schedule[phase.id].start)} → {absToLabel(schedule[phase.id].end)}
-                      </span>
+                      <div className="flex items-center gap-1 text-xs flex-shrink-0">
+                        <div className="flex items-center rounded-md border border-neutral-400 dark:border-neutral-500 overflow-hidden bg-white/40 dark:bg-black/10">
+                          <button
+                            type="button"
+                            onClick={() => updatePhaseTime(phase.id, phase.hours, 'start', -timeStepMinutes, durationBounds)}
+                            className="px-1.5 py-0.5 font-bold hover:bg-current/10"
+                            aria-label={`Anticipa inizio ${phase.label}`}
+                          >
+                            −
+                          </button>
+                          <span className="px-1.5 py-0.5 text-neutral-600 dark:text-neutral-300 whitespace-nowrap font-medium">
+                            {absToLabel(schedule[phase.id].start)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updatePhaseTime(phase.id, phase.hours, 'start', timeStepMinutes, durationBounds)}
+                            className="px-1.5 py-0.5 font-bold hover:bg-current/10"
+                            aria-label={`Posticipa inizio ${phase.label}`}
+                          >
+                            +
+                          </button>
+                        </div>
+                        <span className="text-neutral-400">→</span>
+                        <div className="flex items-center rounded-md border border-neutral-400 dark:border-neutral-500 overflow-hidden bg-white/40 dark:bg-black/10">
+                          <button
+                            type="button"
+                            onClick={() => updatePhaseTime(phase.id, phase.hours, 'end', -timeStepMinutes, durationBounds)}
+                            className="px-1.5 py-0.5 font-bold hover:bg-current/10"
+                            aria-label={`Anticipa fine ${phase.label}`}
+                          >
+                            −
+                          </button>
+                          <span className="px-1.5 py-0.5 text-neutral-600 dark:text-neutral-300 whitespace-nowrap font-medium">
+                            {absToLabel(schedule[phase.id].end)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updatePhaseTime(phase.id, phase.hours, 'end', timeStepMinutes, durationBounds)}
+                            className="px-1.5 py-0.5 font-bold hover:bg-current/10"
+                            aria-label={`Posticipa fine ${phase.label}`}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
                     )}
                     {!phase.locked && !isDisabled && (
                       <button
@@ -145,9 +218,9 @@ export function FermentationPhases() {
                           <span className="text-sm font-bold">{formatHours(phase.hours)}</span>
                         </div>
                         <SliderWithButtons
-                          min={phase.id === 'impasto' ? 0.5 : phase.k === 0 ? 0 : 0.5}
-                          max={phase.id === 'impasto' ? 2 : phase.id === 'frigo' ? 72 : isPrefermento ? 48 : 24}
-                          step={phase.id === 'impasto' ? 0.25 : 0.5}
+                          min={durationBounds.min}
+                          max={durationBounds.max}
+                          step={durationBounds.step}
                           value={phase.hours}
                           onChange={v => updatePhase(phase.id, { hours: v })}
                           className="h-1.5 rounded appearance-none cursor-pointer accent-current"

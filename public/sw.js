@@ -1,10 +1,14 @@
-const CACHE = 'lievitomath-v0.9.31';
+const CACHE = 'lievitomath-v0.9.53';
 const PRECACHE = ['/', '/index.html', '/logo.png', '/manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting())
   );
+});
+
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
@@ -39,7 +43,7 @@ self.addEventListener('fetch', e => {
   // Navigazione HTML: network-first, fallback a index.html cachato
   if (request.mode === 'navigate') {
     e.respondWith(
-      fetch(request).catch(() =>
+      fetch(request, { cache: 'no-store' }).catch(() =>
         caches.match('/index.html').then(r => r || caches.match('/'))
       )
     );

@@ -28,11 +28,11 @@ export const KNOWN_FLOURS: KnownFlour[] = [
   { brand: 'Petra', name: '1',                    w: 300, type: '1',        notes: 'W stimato da prot. 14% (non dichiarato). Pane, dolci lievitati.' },
   { brand: 'Petra', name: '9',                    w: 310, type: '0',        notes: 'W stimato da prot. 14.4% (non dichiarato). Pizza media-lunga lievitazione.' },
   { brand: 'Petra', name: '5063',                 w: 270, type: '00',       notes: 'W 260-280. Pizza e pane diretti.' },
-  { brand: 'Petra', name: '0102 HP',              w: 330, type: '0',        notes: 'W 320-340. Pizza e pane lunga lievitazione.' },
+  { brand: 'Petra', name: '0102HP',               w: 330, type: '1',        notes: 'Tipo 1, parzialmente da grano germogliato. W 320-340, P/L 0.55-0.65. Pizza e pane 24-48h (anche frigo).' },
   { brand: 'Petra', name: '5072',                 w: 330, type: '0',        notes: 'W 320-340. Pizza e pane lunga lievitazione.' },
   { brand: 'Petra', name: '5078 (Più Snella)',    w: 365, type: '0',        notes: 'W 350-380. Pizza molto idratata, teglia.' },
   { brand: 'Petra', name: '6384',                 w: 380, type: 'altro',    notes: 'W 370-390. Panettone, pandoro, colombe.' },
-  { brand: 'Petra', name: '3 (integrale)',        w: 0,   type: 'integrale', notes: 'Integrale, W non significativo.' },
+  { brand: 'Petra', name: '3',                    w: 300, type: '1',        notes: 'Tipo 1 macinata a pietra (Augmented Stone Milling), ricca di fibre. W non dichiarato (fibra): valore indicativo per calcoli. Idro medie 55-75%.' },
 
   // --- GENERICHE ---
   { brand: 'Generica', name: 'Farina 00 debole',  w: 150, type: '00',       notes: 'Farine comuni supermercato' },
@@ -56,5 +56,6 @@ export function getFloursByBrand(): Record<string, KnownFlour[]> {
 
 // Etichetta display completa
 export function flourLabel(f: KnownFlour): string {
-  return `${f.brand} ${f.name}${f.type ? ` (${f.type})` : ''} — W${f.w}`;
+  const wLabel = f.w > 0 ? `W${f.w}` : 'W n/d';
+  return `${f.brand} ${f.name}${f.type ? ` (${f.type})` : ''} — ${wLabel}`;
 }

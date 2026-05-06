@@ -39,6 +39,12 @@ export function cumulativeFermentation(phases: FermentationPhase[], yeastType?: 
     }, 0);
 }
 
+export function phaseFermentation(phase: FermentationPhase, yeastType?: YeastType): number {
+  const isSourdough = yeastType === 'madre' || yeastType === 'licoli';
+  const effectiveK = (isSourdough && phase.k === 0.2) ? -0.1 : phase.k;
+  return phase.hours * q10Factor(phase.temperatureCelsius) * effectiveK;
+}
+
 /**
  * Da fermentazione cumulativa F → percentuale lievito/starter sul peso FARINA TOTALE.
  * Relazione inversa: più lunga la fermentazione, meno lievito serve.
@@ -71,6 +77,69 @@ export function yeastPercentFromFermentation(
   const adjusted = raw * YEAST_FACTORS[yeastType];
   const [min, max] = CLAMP[yeastType];
   return Math.min(Math.max(adjusted, min), max);
+}
+
+export interface YeastCalculation {
+  yeastPercent: number;
+  yeastCalcF: number;
+  cumulativeF: number;
+  effectiveYeastType: YeastType;
+  prefermentiPhase: FermentationPhase | null;
+}
+
+export function calculateYeastForPhases(
+  phases: FermentationPhase[],
+  yeastType: YeastType
+): YeastCalculation {
+  const activePhases = phases.filter(p => p.active && p.hours > 0);
+  const prefermentiPhase = activePhases.find(
+    p => (p.id === 'biga' || p.id === 'poolish') && p.flourPercent != null
+  ) ?? null;
+  const cumulativeF = cumulativeFermentation(activePhases, yeastType);
+  const effectiveYeastType: YeastType = prefermentiPhase?.id === 'biga' ? 'fresh' : yeastType;
+
+  if (!prefermentiPhase) {
+    return {
+      yeastPercent: yeastPercentFromFermentation(cumulativeF, effectiveYeastType),
+      yeastCalcF: cumulativeF,
+      cumulativeF,
+      effectiveYeastType,
+      prefermentiPhase,
+    };
+  }
+
+  const flourPct = (prefermentiPhase.flourPercent ?? (prefermentiPhase.id === 'poolish' ? 30 : 40)) / 100;
+  const prefermentF = phaseFermentation(prefermentiPhase, effectiveYeastType);
+  const F_BIGA_REF = 18 * q10Factor(18);
+  const F_POOLISH_REF = 12 * q10Factor(20);
+
+  let yeastCalcF: number;
+  if (prefermentiPhase.id === 'biga') {
+    const prefIndex = activePhases.findIndex(p => p.id === prefermentiPhase.id);
+    const warmPostBigaF = activePhases
+      .slice(prefIndex + 1)
+      .filter(phase => phase.id !== 'frigo')
+      .reduce((sum, phase) => sum + phaseFermentation(phase, 'fresh'), 0);
+    const postFridgeHours = activePhases
+      .slice(prefIndex + 1)
+      .filter(phase => phase.id === 'frigo')
+      .reduce((sum, phase) => sum + phase.hours, 0);
+    const baseBigaF = prefermentF / (F_BIGA_REF * flourPct);
+    const warmContribution = Math.max(0, warmPostBigaF - 2.5) * 0.6;
+    const coldPenalty = Math.min(postFridgeHours * 0.025, 0.9);
+    const postContribution = Math.max(0, warmContribution - coldPenalty);
+    yeastCalcF = baseBigaF + postContribution;
+  } else {
+    yeastCalcF = prefermentF / (F_POOLISH_REF * flourPct * 0.3);
+  }
+
+  return {
+    yeastPercent: yeastPercentFromFermentation(yeastCalcF, effectiveYeastType),
+    yeastCalcF,
+    cumulativeF,
+    effectiveYeastType,
+    prefermentiPhase,
+  };
 }
 
 /** Etichetta leggibile per il tipo di lievito */

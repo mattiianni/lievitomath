@@ -4,6 +4,7 @@ import { useDoughStore } from '../../store/useDoughStore';
 import { SectionCard } from '../ui/SectionCard';
 import { yeastTypeLabel } from '../../engine/fermentation';
 import { calcSchedule, absToLabel } from '../../utils/cookingSchedule';
+import { computeShoppingList, formatAmount } from '../../utils/shoppingList';
 
 const MODE_NAME: Record<string, string> = {
   napoletana: 'Pizza Napoletana',
@@ -22,6 +23,7 @@ export function IngredientsCard() {
   const result = useCalculation();
   const mode = useDoughStore(s => s.state.mode);
   const state = useDoughStore(s => s.state);
+  const shoppingPizzas = useDoughStore(s => s.shoppingPizzas);
   const userFlourBanner = useDoughStore(s => s.userFlourBanner);
   const setUserFlourBanner = useDoughStore(s => s.setUserFlourBanner);
   const cookingDay = useDoughStore(s => s.cookingDay);
@@ -45,6 +47,7 @@ export function IngredientsCard() {
   const { ingredients, yeastPercent, totalDoughWeight, prefermentiSplit, effectiveYeastType, flourWeight, cumulativeF } = result;
 
   const isSourdoughDirect = !prefermentiSplit && (effectiveYeastType === 'madre' || effectiveYeastType === 'licoli');
+  const isNaturalPrefermento = !!prefermentiSplit && (effectiveYeastType === 'madre' || effectiveYeastType === 'licoli');
 
   const rows = [
     { label: isSourdoughDirect ? 'Farina' : 'Farina totale', value: ingredients.flour, unit: 'g', bold: true },
@@ -92,6 +95,7 @@ export function IngredientsCard() {
     const date = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
     const phases = state.phases.filter(p => p.active && p.hours > 0);
     const printSchedule = calcSchedule(phases, cookingDay, cookingTime);
+    const shopping = computeShoppingList(shoppingPizzas);
 
     const phaseColors: Record<string, string> = {
       biga:     '#c9a840',
@@ -351,6 +355,37 @@ export function IngredientsCard() {
         <p style="font-size:10px; color:#ccc; text-align:center; margin-top:12px; padding-top:8px; border-top:1px solid #f0f0f0;">
           Generato con <strong style="color:#ea580c;">LievitoMath</strong> · Algoritmo Q10 fermentativo · Disciplinare AVPN
         </p>
+
+        ${shopping.pizzaCount > 0 ? `
+        <div style="break-before: page; page-break-before: always;"></div>
+        <div style="margin-top:8px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+            <h2 style="font-size:14px; font-weight:800; color:#0ea5e9; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Pizze</h2>
+            <div style="font-size:12px; color:#888; font-weight:600;">Totale: ${shopping.pizzaCount}</div>
+          </div>
+          <table style="width:100%; border-collapse:collapse; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
+            ${shopping.selectedRows.map((row) => `
+              <tr style="border-bottom:1px solid #f0f0f0;">
+                <td style="padding:8px 10px; font-size:14px; font-weight:600; color:#222;">${row.name}</td>
+                <td style="padding:8px 10px; text-align:right;">
+                  <span style="display:inline-block; min-width:34px; background:#ea580c; color:white; border-radius:7px; padding:3px 10px; font-size:13px; font-weight:700;">× ${row.quantity}</span>
+                </td>
+              </tr>`).join('')}
+          </table>
+
+          <div style="display:flex; align-items:center; gap:8px; margin:14px 0 10px;">
+            <div style="width:4px; height:20px; background:#ea580c; border-radius:2px;"></div>
+            <h2 style="font-size:14px; font-weight:800; color:#ea580c; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Lista della spesa</h2>
+          </div>
+          <table style="width:100%; border-collapse:collapse; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
+            ${shopping.items.map(([name, item], i) => `
+              <tr style="background:${i % 2 === 0 ? '#f9fafb' : 'white'}; border-bottom:1px solid #f0f0f0;">
+                <td style="padding:8px 10px; font-size:14px; font-weight:600; color:#222;">${name}${item.kind === 'tilde' && item.count > 1 ? ` [x${item.count}]` : ''}</td>
+                <td style="padding:8px 10px; text-align:right; font-size:14px; font-weight:700; color:#ea580c;">${item.kind === 'grams' ? formatAmount(item.grams) : '~'}</td>
+              </tr>`).join('')}
+          </table>
+        </div>
+        ` : ''}
       </div>
     `;
 
@@ -395,9 +430,28 @@ export function IngredientsCard() {
             </p>
             <div className="space-y-1">
               {[
-                { label: 'Farina', value: prefermentiSplit.prefermento.flour, unit: 'g', sub: `${prefermentiSplit.prefermento.flourPercent}% del totale` },
-                { label: 'Acqua',  value: prefermentiSplit.prefermento.water,  unit: 'g', sub: `idro ${prefermentiSplit.prefermento.hydration}%` },
-                { label: yeastTypeLabel(effectiveYeastType), value: prefermentiSplit.prefermento.yeast, unit: 'g', sub: null },
+                {
+                  label: 'Farina',
+                  value: prefermentiSplit.prefermento.flour,
+                  unit: 'g',
+                  sub: prefermentiSplit.prefermento.starterFlour
+                    ? `+ ${prefermentiSplit.prefermento.starterFlour}g nello starter`
+                    : `${prefermentiSplit.prefermento.flourPercent}% del totale`,
+                },
+                {
+                  label: 'Acqua',
+                  value: prefermentiSplit.prefermento.water,
+                  unit: 'g',
+                  sub: prefermentiSplit.prefermento.starterWater
+                    ? `+ ${prefermentiSplit.prefermento.starterWater}g nello starter`
+                    : `idro ${prefermentiSplit.prefermento.hydration}%`,
+                },
+                {
+                  label: yeastTypeLabel(effectiveYeastType),
+                  value: prefermentiSplit.prefermento.yeast,
+                  unit: 'g',
+                  sub: isNaturalPrefermento ? 'starter nel prefermento' : null,
+                },
               ].map(r => (
                 <div key={r.label} className="flex items-center justify-between py-1 border-b border-current/10 last:border-0">
                   <div>
@@ -481,7 +535,11 @@ export function IngredientsCard() {
 
       <div className="p-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-xs text-neutral-500 mb-3">
         {prefermentiSplit ? (
-          <>% lievito: <strong>{(yeastPercent / (prefermentiSplit.prefermento.flourPercent / 100)).toFixed(2)}%</strong> su farina {prefermentiSplit.prefermento.type} · <span className="opacity-70">{yeastPercent.toFixed(3)}% su farina totale</span></>
+          isNaturalPrefermento ? (
+            <>% starter: <strong>{yeastPercent.toFixed(1)}%</strong> sulla farina totale · poolish idro {prefermentiSplit.prefermento.hydration}% includendo lo starter</>
+          ) : (
+            <>% lievito: <strong>{(yeastPercent / (prefermentiSplit.prefermento.flourPercent / 100)).toFixed(2)}%</strong> su farina {prefermentiSplit.prefermento.type} · <span className="opacity-70">{yeastPercent.toFixed(3)}% su farina totale</span></>
+          )
         ) : isSourdoughDirect ? (
           <>% starter: <strong>{yeastPercent.toFixed(1)}%</strong> sulla farina totale · farina totale (incl. nello starter): <strong>{Math.round(flourWeight)}g</strong></>
         ) : (

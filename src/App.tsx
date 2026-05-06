@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Header } from './components/layout/Header';
 import { ModeTab } from './components/layout/ModeTab';
 import { BaseInputs } from './components/inputs/BaseInputs';
@@ -12,10 +12,23 @@ import { GuidedModeToggle } from './components/GuidedModeToggle';
 import { GuidedModePage } from './components/GuidedModePage';
 import { CookingTimeInput } from './components/inputs/CookingTimeInput';
 import { StaglioSelector } from './components/inputs/StaglioSelector';
+import { ShoppingListCard } from './components/outputs/ShoppingListCard';
+import { useDoughStore } from './store/useDoughStore';
 
 export default function App() {
   const [guidedMode, setGuidedMode] = useState(false);
   const [shoppingList, setShoppingList] = useState(false);
+  const mode = useDoughStore(s => s.state.mode);
+  const clearShoppingPizzas = useDoughStore(s => s.clearShoppingPizzas);
+
+  const shoppingAllowed = mode === 'napoletana';
+
+  useEffect(() => {
+    if (!shoppingAllowed) {
+      setShoppingList(false);
+      clearShoppingPizzas();
+    }
+  }, [shoppingAllowed, clearShoppingPizzas]);
 
   return (
     <div className="min-h-screen font-sans">
@@ -63,29 +76,39 @@ export default function App() {
           </>
         )}
 
-        {/* Toggle Lista della Spesa — visibile in entrambe le modalità */}
-        <div className="mt-6 flex items-center justify-between px-4 py-3 rounded-2xl bg-white/10 dark:bg-white/5 border border-white/20 dark:border-white/10">
-          <div className="flex items-center gap-3">
-            <span className="text-lg">🛒</span>
-            <div>
-              <p className="text-sm font-semibold text-white dark:text-white/90">Lista della Spesa</p>
-              <p className="text-xs text-white/60 dark:text-white/50">Prossimamente</p>
+        {shoppingAllowed && (
+          <>
+            {/* Toggle Lista della Spesa — solo Napoletana */}
+            <div className="mt-6 flex items-center justify-between px-4 py-3 rounded-2xl bg-white/10 dark:bg-white/5 border border-white/20 dark:border-white/10">
+              <div className="flex items-center gap-3">
+                <span className="text-lg">🛒</span>
+                <div>
+                  <p className="text-sm font-semibold text-white dark:text-white/90">Lista della Spesa</p>
+                  <p className="text-xs text-white/60 dark:text-white/50">Cose da comprare</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShoppingList(v => !v)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                  shoppingList ? 'bg-brand-500' : 'bg-white/20 dark:bg-white/10'
+                }`}
+                aria-label="Toggle lista della spesa"
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                    shoppingList ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
             </div>
-          </div>
-          <button
-            onClick={() => setShoppingList(v => !v)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-              shoppingList ? 'bg-brand-500' : 'bg-white/20 dark:bg-white/10'
-            }`}
-            aria-label="Toggle lista della spesa"
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                shoppingList ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
-          </button>
-        </div>
+
+            {shoppingList && (
+              <div className="mt-5">
+                <ShoppingListCard />
+              </div>
+            )}
+          </>
+        )}
 
         <footer className="mt-6 text-center pb-6">
           <div style={{ fontFamily: 'Lobster, cursive' }} className="text-xl text-white dark:text-white/80 mb-0.5">

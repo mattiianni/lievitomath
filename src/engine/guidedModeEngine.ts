@@ -1,5 +1,5 @@
 import type { DoughMode, FermentationPhase, YeastType } from '../types/dough';
-import { cumulativeFermentation, yeastPercentFromFermentation } from './fermentation';
+import { calculateYeastForPhases } from './fermentation';
 import { calculateIngredients, calculatePrefermentiSplit } from './dough';
 import type { PrefermentiSplit } from './dough';
 import { getTargetW } from './flour';
@@ -90,7 +90,7 @@ export function suggestPhases(params: GuidedParams): FermentationPhase[] {
 
   // Helper — inserisce la fase impasto prima della puntata
   const impasto = (T: number): FermentationPhase =>
-    ({ id: 'impasto', label: 'Impasto', hours: IMPASTO_H, temperatureCelsius: T, k: 0.0, active: true });
+    ({ id: 'impasto', label: 'Impasto', hours: IMPASTO_H, temperatureCelsius: T, k: 0.0, active: true, locked: true });
 
   if (prefermento === 'biga' && !isSourdough) {
     if (usesFridge) {
@@ -231,30 +231,17 @@ export function calculateGuided(params: GuidedParams): GuidedResult {
   const { mode, pieces, yeastType, staglioAFreddo, prefermento, ambientTemp } = params;
   const { weightPerPiece, hydration, salt, oil } = MODE_DEFAULTS[mode];
 
-  const phases      = suggestPhases(params);
-  const cumulativeF = cumulativeFermentation(phases, yeastType);
+  const phases = suggestPhases(params);
+  const {
+    yeastPercent,
+    cumulativeF,
+    effectiveYeastType,
+    prefermentiPhase: prefPhase,
+  } = calculateYeastForPhases(phases, yeastType);
 
-  const prefPhase        = phases.find(p => (p.id === 'biga' || p.id === 'poolish') && p.active);
-  const effectiveYeastType: YeastType = prefPhase?.id === 'biga' ? 'fresh' : yeastType;
-
-  const F_BIGA_REF    = 18 * Math.pow(2, (18 - 24) / 10);
-  const F_POOLISH_REF = 12 * Math.pow(2, (20 - 24) / 10);
-
-  let yeastCalcF: number;
-  if (prefPhase) {
-    const f = prefPhase.hours * Math.pow(2, (prefPhase.temperatureCelsius - 24) / 10) * prefPhase.k;
-    yeastCalcF = prefPhase.id === 'biga'
-      ? f / (F_BIGA_REF    * ((prefPhase.flourPercent ?? 40) / 100))
-      : f / (F_POOLISH_REF * ((prefPhase.flourPercent ?? 30) / 100) * 0.3);
-  } else {
-    yeastCalcF = cumulativeF;
-  }
-  const yeastPercent = yeastPercentFromFermentation(yeastCalcF, effectiveYeastType);
-
-  const isSourdoughDirect = !prefPhase && (effectiveYeastType === 'madre' || effectiveYeastType === 'licoli');
-  const starterHydration: number | null = isSourdoughDirect
-    ? (yeastType === 'madre' ? 50 : 100)
-    : null;
+  const starterHydration: number | null =
+    effectiveYeastType === 'madre' ? 50 :
+    effectiveYeastType === 'licoli' ? 100 : null;
 
   const recipe      = { pieces, weightPerPiece, hydration, salt, oil };
   const ingredients = calculateIngredients(recipe, yeastPercent, starterHydration);
@@ -266,7 +253,7 @@ export function calculateGuided(params: GuidedParams): GuidedResult {
         salt:  ingredients.salt,
         oil:   ingredients.oil,
         yeast: ingredients.yeast,
-      })
+      }, starterHydration)
     : null;
 
   const suggestedFlour = suggestFlour(mode, cumulativeF);

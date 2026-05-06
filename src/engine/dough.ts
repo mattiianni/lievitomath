@@ -6,6 +6,8 @@ export interface BigaIngredients {
   flour: number;
   water: number;
   yeast: number;
+  starterFlour?: number;
+  starterWater?: number;
   totalWeight: number;
   hydration: number;
   flourPercent: number;
@@ -29,18 +31,23 @@ export interface PrefermentiSplit {
 
 export function calculatePrefermentiSplit(
   phase: FermentationPhase,
-  total: { flour: number; water: number; salt: number; oil: number; yeast: number }
+  total: { flour: number; water: number; salt: number; oil: number; yeast: number },
+  starterHydration: number | null = null
 ): PrefermentiSplit {
   const pct = phase.flourPercent ?? 40;
   const hydration = phase.hydrationPercent ?? (phase.id === 'biga' ? 44 : 100);
 
-  const prefFlourRaw = total.flour * (pct / 100);
-  const prefWaterRaw = prefFlourRaw * (hydration / 100);
-  const prefYeast    = total.yeast; // tutto il lievito va nel prefermento
+  const prefFlourTarget = total.flour * (pct / 100);
+  const prefWaterTarget = prefFlourTarget * (hydration / 100);
+  const prefYeast = total.yeast; // tutto il lievito/starter va nel prefermento
+  const starterFlour = starterHydration === null ? 0 : prefYeast * (100 / (100 + starterHydration));
+  const starterWater = starterHydration === null ? 0 : prefYeast * (starterHydration / (100 + starterHydration));
+  const prefFlourRaw = Math.max(0, prefFlourTarget - starterFlour);
+  const prefWaterRaw = Math.max(0, prefWaterTarget - starterWater);
   const prefTotal    = prefFlourRaw + prefWaterRaw + prefYeast;
 
-  const mainFlour = total.flour - prefFlourRaw;
-  const mainWater = total.water - prefWaterRaw;
+  const mainFlour = total.flour - prefFlourRaw - starterFlour;
+  const mainWater = total.water - prefWaterRaw - starterWater;
 
   return {
     prefermento: {
@@ -48,6 +55,10 @@ export function calculatePrefermentiSplit(
       flour:             Math.round(prefFlourRaw),
       water:             Math.round(prefWaterRaw),
       yeast:             prefYeast,
+      ...(starterHydration !== null ? {
+        starterFlour: Math.round(starterFlour),
+        starterWater: Math.round(starterWater),
+      } : {}),
       totalWeight:       Math.round(prefTotal),
       hydration,
       flourPercent:      pct,

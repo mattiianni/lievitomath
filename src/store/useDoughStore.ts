@@ -33,11 +33,18 @@ interface DoughStore {
   normalizeFlourPercentages: () => void;
 
   resetToMode: (mode: DoughMode) => void;
+
+  shoppingPizzas: { id: string; quantity: number }[];
+  addShoppingPizza: (id: string) => void;
+  setShoppingPizzaQuantity: (id: string, quantity: number) => void;
+  clearShoppingPizzas: () => void;
 }
 
 export const useDoughStore = create<DoughStore>()((set) => ({
   state: getDefaultState('napoletana'),
   userFlourBanner: null,
+
+  shoppingPizzas: [],
 
   cookingDay:  5,     // SAB
   cookingTime: 1200,  // 20:00
@@ -75,6 +82,7 @@ export const useDoughStore = create<DoughStore>()((set) => ({
     set(s => {
       const PREFERMENTI = ['biga', 'poolish'];
       const current = s.state.phases.find(p => p.id === id);
+      if (id === 'impasto') return s;
       const willBeActive = current ? !current.active : false;
       const phases = s.state.phases.map(p => {
         if (p.id === id && !p.locked) return { ...p, active: !p.active };
@@ -161,4 +169,22 @@ export const useDoughStore = create<DoughStore>()((set) => ({
     }),
 
   resetToMode: (mode) => set(() => ({ state: getDefaultState(mode) })),
+
+  addShoppingPizza: (id) =>
+    set(s => {
+      const existing = s.shoppingPizzas.find(p => p.id === id);
+      const shoppingPizzas = existing
+        ? s.shoppingPizzas.map(p => p.id === id ? { ...p, quantity: p.quantity + 1 } : p)
+        : [...s.shoppingPizzas, { id, quantity: 1 }];
+      return { shoppingPizzas };
+    }),
+
+  setShoppingPizzaQuantity: (id, quantity) =>
+    set(s => ({
+      shoppingPizzas: s.shoppingPizzas
+        .map(p => p.id === id ? { ...p, quantity } : p)
+        .filter(p => p.quantity > 0),
+    })),
+
+  clearShoppingPizzas: () => set(() => ({ shoppingPizzas: [] })),
 }));
