@@ -55,17 +55,17 @@ export function BaseInputs() {
     const inc = () => onChange(Math.min(max, value + 1));
 
     const btnCls =
-      'h-10 w-10 rounded-xl bg-neutral-100 dark:bg-[#0A1228] ' +
-      'text-neutral-700 dark:text-neutral-200 text-xl font-bold leading-none ' +
+      'h-10 w-10 md:h-9 md:w-9 rounded-xl bg-neutral-100 dark:bg-[#0A1228] ' +
+      'text-neutral-700 dark:text-neutral-200 text-xl md:text-lg font-bold leading-none ' +
       'flex items-center justify-center active:scale-95 transition-transform select-none touch-manipulation';
 
     return (
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2 md:gap-2.5">
         <button type="button" onClick={dec} className={btnCls} aria-label="Diminuisci">
           −
         </button>
-        <div className="flex-1 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] px-3 py-2 text-center">
-          <span className="text-2xl font-bold tabular-nums text-neutral-900 dark:text-neutral-50">
+        <div className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] px-4 py-2 text-center w-24 md:w-20 flex items-center justify-center">
+          <span className="text-2xl md:text-xl font-bold tabular-nums text-neutral-900 dark:text-neutral-50 leading-none">
             {value}
           </span>
         </div>

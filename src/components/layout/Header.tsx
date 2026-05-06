@@ -11,7 +11,7 @@ export function Header() {
         <img
           src="/logo.png"
           alt="Pizzeria da Mattia"
-          className="h-[84px] sm:h-[96px] w-auto object-contain"
+          className="h-[110px] w-auto object-contain"
           onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
         />
         <div>
