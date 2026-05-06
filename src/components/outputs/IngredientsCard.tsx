@@ -7,7 +7,7 @@ import { calcSchedule, absToLabel } from '../../utils/cookingSchedule';
 import { computeShoppingList } from '../../utils/shoppingList';
 
 const MODE_NAME: Record<string, string> = {
-  napoletana: 'Pizza Napoletana',
+  napoletana: 'Pizza Verace',
   teglia: 'Pizza in Teglia',
   pane: 'Pane',
 };

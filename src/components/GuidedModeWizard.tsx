@@ -11,7 +11,7 @@ import { DAYS } from '../utils/cookingSchedule';
 // ── Dati step ────────────────────────────────────────────────────────────────
 
 const MODES = [
-  { id: 'napoletana' as DoughMode, emoji: '🍕', label: 'Napoletana', sub: 'Disciplinare AVPN' },
+  { id: 'napoletana' as DoughMode, emoji: '🍕', label: 'Verace', sub: 'Disciplinare AVPN' },
   { id: 'teglia'     as DoughMode, emoji: '🫓', label: 'Teglia',     sub: 'Stile Bonci' },
   { id: 'pane'       as DoughMode, emoji: '🍞', label: 'Pane',       sub: 'Lievitazione lunga' },
 ];

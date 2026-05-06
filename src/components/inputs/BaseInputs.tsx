@@ -67,7 +67,7 @@ export function BaseInputs() {
           −
         </button>
         <div className="w-16 h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] flex items-center justify-center">
-          <span className="text-[20px] font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none">
+          <span className="text-[21px] font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none">
             {value}
           </span>
         </div>

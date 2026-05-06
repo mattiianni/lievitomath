@@ -2,7 +2,7 @@ import { useDoughStore } from '../../store/useDoughStore';
 import type { DoughMode } from '../../types/dough';
 
 const MODES: { id: DoughMode; label: string; emoji: string; desc: string }[] = [
-  { id: 'napoletana', label: 'Napoletana', emoji: '🍕', desc: 'Disciplinare AVPN' },
+  { id: 'napoletana', label: 'Verace', emoji: '🍕', desc: 'Disciplinare AVPN' },
   { id: 'teglia',     label: 'Teglia',     emoji: '🫓', desc: 'Stile Bonci' },
   { id: 'pane',       label: 'Pane',       emoji: '🍞', desc: 'Lievitazione lunga' },
 ];
