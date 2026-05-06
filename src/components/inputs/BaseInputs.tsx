@@ -55,8 +55,8 @@ export function BaseInputs() {
     const inc = () => onChange(Math.min(max, value + 1));
 
     const btnCls =
-      'h-10 w-10 md:h-8 md:w-8 rounded-xl bg-neutral-100 dark:bg-[#0A1228] ' +
-      'text-neutral-700 dark:text-neutral-200 text-xl md:text-base font-bold leading-none ' +
+      'h-9 w-9 md:h-8 md:w-8 rounded-xl bg-neutral-100 dark:bg-[#0A1228] ' +
+      'text-neutral-700 dark:text-neutral-200 text-lg md:text-base font-bold leading-none ' +
       'flex items-center justify-center active:scale-95 transition-transform select-none touch-manipulation';
 
     return (
