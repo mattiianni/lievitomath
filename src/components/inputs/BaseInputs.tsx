@@ -1,6 +1,5 @@
 import { useDoughStore } from '../../store/useDoughStore';
 import { SectionCard } from '../ui/SectionCard';
-import { NumberInput } from '../ui/NumberInput';
 import { Slider } from '../ui/Slider';
 import type { DoughMode } from '../../types/dough';
 
@@ -41,25 +40,58 @@ export function BaseInputs() {
   const store = useDoughStore();
   const cfg = MODE_CONFIG[s.mode];
 
+  const Stepper = ({
+    value,
+    onChange,
+    min,
+    max,
+  }: {
+    value: number;
+    onChange: (v: number) => void;
+    min: number;
+    max: number;
+  }) => {
+    const dec = () => onChange(Math.max(min, value - 1));
+    const inc = () => onChange(Math.min(max, value + 1));
+
+    const btnCls =
+      'h-10 w-10 rounded-xl bg-neutral-100 dark:bg-[#0A1228] ' +
+      'text-neutral-700 dark:text-neutral-200 text-xl font-bold leading-none ' +
+      'flex items-center justify-center active:scale-95 transition-transform select-none touch-manipulation';
+
+    return (
+      <div className="flex items-center justify-between gap-3">
+        <button type="button" onClick={dec} className={btnCls} aria-label="Diminuisci">
+          −
+        </button>
+        <div className="flex-1 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] px-3 py-2 text-center">
+          <span className="text-2xl font-bold tabular-nums text-neutral-900 dark:text-neutral-50">
+            {value}
+          </span>
+        </div>
+        <button type="button" onClick={inc} className={btnCls} aria-label="Aumenta">
+          +
+        </button>
+      </div>
+    );
+  };
+
   return (
     <SectionCard title="Impasto">
       <div className="grid grid-cols-2 gap-4 mb-5">
-        <NumberInput
-          label={cfg.pieces}
-          value={s.pieces}
-          onChange={store.setPieces}
-          min={1}
-          max={50}
-        />
-        <NumberInput
-          label={cfg.weight.label}
-          value={s.weightPerPiece}
-          onChange={store.setWeightPerPiece}
-          min={cfg.weight.min}
-          max={cfg.weight.max}
-          unit="g"
-          hint={cfg.weight.hint}
-        />
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{cfg.pieces}</label>
+          <Stepper value={s.pieces} onChange={store.setPieces} min={1} max={50} />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-baseline justify-between gap-2">
+            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+              {cfg.weight.label} (g)
+            </label>
+            <span className="text-xs text-neutral-400 dark:text-neutral-500">{cfg.weight.hint}</span>
+          </div>
+          <Stepper value={s.weightPerPiece} onChange={store.setWeightPerPiece} min={cfg.weight.min} max={cfg.weight.max} />
+        </div>
       </div>
 
       <div className="flex flex-col gap-5">
