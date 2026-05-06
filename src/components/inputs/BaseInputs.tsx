@@ -45,31 +45,33 @@ export function BaseInputs() {
     onChange,
     min,
     max,
+    valueLabel,
   }: {
     value: number;
     onChange: (v: number) => void;
     min: number;
     max: number;
+    valueLabel: string;
   }) => {
     const dec = () => onChange(Math.max(min, value - 1));
     const inc = () => onChange(Math.min(max, value + 1));
 
     const btnCls =
-      'h-9 w-9 md:h-8 md:w-8 rounded-xl bg-neutral-100 dark:bg-[#0A1228] ' +
-      'text-neutral-700 dark:text-neutral-200 text-lg md:text-base font-bold leading-none ' +
+      'h-8 w-8 rounded-lg bg-neutral-100 dark:bg-[#0A1228] ' +
+      'text-neutral-700 dark:text-neutral-200 text-base font-bold leading-none ' +
       'flex items-center justify-center active:scale-95 transition-transform select-none touch-manipulation';
 
     return (
-      <div className="flex w-full items-center gap-2 md:gap-2.5">
-        <button type="button" onClick={dec} className={btnCls} aria-label="Diminuisci">
+      <div className="flex flex-nowrap items-center gap-2">
+        <button type="button" onClick={dec} className={btnCls} aria-label={`Diminuisci ${valueLabel}`}>
           −
         </button>
-        <div className="flex-1 min-w-0 max-w-[140px] md:flex-none md:w-24 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] px-4 md:px-3 py-2 text-center flex items-center justify-center">
-          <span className="text-2xl md:text-xl font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none">
+        <div className="w-16 h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] flex items-center justify-center">
+          <span className="text-[18px] font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none">
             {value}
           </span>
         </div>
-        <button type="button" onClick={inc} className={btnCls} aria-label="Aumenta">
+        <button type="button" onClick={inc} className={btnCls} aria-label={`Aumenta ${valueLabel}`}>
           +
         </button>
       </div>
@@ -78,21 +80,27 @@ export function BaseInputs() {
 
   return (
     <SectionCard title="Impasto">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
+      <div className="grid grid-cols-2 gap-4 mb-5">
+        <div className="flex flex-col gap-1.5 min-w-0">
+          <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
             {cfg.pieces}
           </label>
-          <Stepper value={s.pieces} onChange={store.setPieces} min={1} max={50} />
+          <Stepper value={s.pieces} onChange={store.setPieces} min={1} max={50} valueLabel="numero di palline" />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-baseline justify-between gap-2">
-            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
-              {cfg.weight.label} <span className="text-xs text-neutral-400 dark:text-neutral-500">(g)</span>
-            </label>
-            <span className="text-xs text-neutral-400 dark:text-neutral-500 whitespace-nowrap">{cfg.weight.hint}</span>
+        <div className="flex flex-col gap-1.5 min-w-0">
+          <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            {cfg.weight.label}
+          </label>
+          <div className="text-xs text-neutral-400 dark:text-neutral-500 -mt-1">
+            {cfg.weight.hint}
           </div>
-          <Stepper value={s.weightPerPiece} onChange={store.setWeightPerPiece} min={cfg.weight.min} max={cfg.weight.max} />
+          <Stepper
+            value={s.weightPerPiece}
+            onChange={store.setWeightPerPiece}
+            min={cfg.weight.min}
+            max={cfg.weight.max}
+            valueLabel="peso"
+          />
         </div>
       </div>
 
