@@ -52,6 +52,9 @@ export function ShoppingListCard() {
     const shoppingRows = shopping.items
       .map(([name, item], index) => `
         <tr style="background:${index % 2 === 0 ? '#f9fafb' : 'white'}; border-bottom:1px solid #f0f0f0;">
+          <td style="padding:8px 10px; width:34px; text-align:center;">
+            <span style="display:inline-block; width:16px; height:16px; border:2px solid #cbd5e1; border-radius:3px;"></span>
+          </td>
           <td style="padding:8px 10px; font-size:14px; font-weight:600; color:#222;">${name}${item.kind === 'tilde' && item.count > 1 ? ` [x${item.count}]` : ''}</td>
           <td style="padding:8px 10px; text-align:right; font-size:14px; font-weight:700; color:#ea580c;">${item.kind === 'grams' ? formatShoppingAmount(name, item.grams) : '~'}</td>
         </tr>`)
@@ -94,7 +97,7 @@ export function ShoppingListCard() {
           <table style="width:100%; border-collapse:collapse; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
             ${shoppingRows || `
               <tr>
-                <td style="padding:12px; font-size:13px; color:#888;">Aggiungi pizze dal menù.</td>
+                <td colspan="3" style="padding:12px; font-size:13px; color:#888;">Aggiungi pizze dal menù.</td>
               </tr>`}
           </table>
         </div>
