@@ -42,67 +42,90 @@ export function ShoppingListCard() {
     const selectedRows = shopping.selectedRows
       .map(item => `
         <tr style="border-bottom:1px solid #f0f0f0;">
-          <td style="padding:8px 10px; font-size:14px; font-weight:600; color:#222;">${item.name}</td>
-          <td style="padding:8px 10px; text-align:right;">
-            <span style="display:inline-block; min-width:34px; background:#ea580c; color:white; border-radius:7px; padding:3px 10px; font-size:13px; font-weight:700;">× ${item.quantity}</span>
+          <td style="padding:6px 8px; font-size:12.5px; font-weight:600; color:#222;">${item.name}</td>
+          <td style="padding:6px 8px; text-align:right;">
+            <span style="display:inline-block; min-width:34px; background:#ea580c; color:white; border-radius:6px; padding:2px 8px; font-size:12px; font-weight:700;">× ${item.quantity}</span>
           </td>
         </tr>`)
       .join('');
 
-    const shoppingRows = shopping.items
+    const shoppingItems = shopping.items
       .map(([name, item], index) => `
-        <tr style="background:${index % 2 === 0 ? '#f9fafb' : 'white'}; border-bottom:1px solid #f0f0f0;">
-          <td style="padding:8px 10px; width:34px; text-align:center;">
-            <span style="display:inline-block; width:16px; height:16px; border:2px solid #cbd5e1; border-radius:3px;"></span>
-          </td>
-          <td style="padding:8px 10px; font-size:14px; font-weight:600; color:#222;">${name}${item.kind === 'tilde' && item.count > 1 ? ` [x${item.count}]` : ''}</td>
-          <td style="padding:8px 10px; text-align:right; font-size:14px; font-weight:700; color:#ea580c;">${item.kind === 'grams' ? formatShoppingAmount(name, item.grams) : '~'}</td>
-        </tr>`)
+        <div class="lm-item ${index % 2 === 0 ? 'lm-item-alt' : ''}">
+          <span class="lm-box" aria-hidden="true"></span>
+          <div class="lm-name">${name}${item.kind === 'tilde' && item.count > 1 ? ` <span class="lm-multi">[x${item.count}]</span>` : ''}</div>
+          <div class="lm-amt">${item.kind === 'grams' ? formatShoppingAmount(name, item.grams) : '~'}</div>
+        </div>`)
       .join('');
 
     el.innerHTML = `
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-      <style>@page { size: A4 portrait; margin: 8mm 10mm; } * { box-sizing: border-box; }</style>
-      <div style="font-family:'Inter',sans-serif; max-width:100%; margin:0 auto; color:#1a1a1a; font-size:11px;">
-        <div style="background:linear-gradient(135deg,#ea580c,#f97316); border-radius:10px; padding:12px 16px; margin-bottom:14px; color:white; print-color-adjust:exact; -webkit-print-color-adjust:exact;">
-          <div style="display:flex; align-items:center; justify-content:space-between;">
-            <h1 style="font-family:'Lobster',cursive; font-size:24px; margin:0; letter-spacing:0.5px; text-shadow:0 1px 3px rgba(0,0,0,0.35);">LievitoMath</h1>
-            <div style="text-align:right; font-size:12px; opacity:0.85;">${date}</div>
+      <style>
+        @page { size: A4 portrait; margin: 6mm 8mm; }
+        * { box-sizing: border-box; }
+        html, body { padding: 0; margin: 0; }
+        .lm-wrap { font-family: 'Inter', sans-serif; max-width: 100%; margin: 0 auto; color: #1a1a1a; font-size: 10.5px; }
+        .lm-hero { background: linear-gradient(135deg,#ea580c,#f97316); border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; color: #fff; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        .lm-hero-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .lm-brand { font-family: 'Lobster', cursive; font-size: 22px; margin: 0; letter-spacing: 0.5px; text-shadow: 0 1px 3px rgba(0,0,0,0.35); }
+        .lm-date { text-align: right; font-size: 11px; opacity: 0.85; }
+        .lm-title { margin-top: 4px; font-size: 12.5px; font-weight: 700; }
+        .lm-sub { margin-top: 2px; font-size: 11px; opacity: 0.85; }
+        .lm-section { margin-bottom: 10px; }
+        .lm-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+        .lm-bar { width: 4px; height: 18px; border-radius: 2px; }
+        .lm-h2 { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin: 0; }
+        .lm-card { border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
+        .lm-table { width: 100%; border-collapse: collapse; }
+        .lm-empty { padding: 10px; font-size: 12px; color: #888; }
+
+        .lm-columns { column-count: 2; column-gap: 10px; padding: 6px; }
+        .lm-item { break-inside: avoid; display: grid; grid-template-columns: 20px 1fr auto; gap: 8px; align-items: center; padding: 5px 6px; border-radius: 8px; }
+        .lm-item-alt { background: #f9fafb; }
+        .lm-box { width: 14px; height: 14px; border: 2px solid #cbd5e1; border-radius: 3px; justify-self: center; }
+        .lm-name { font-size: 12px; font-weight: 650; color: #222; }
+        .lm-multi { font-weight: 800; color: #6b7280; }
+        .lm-amt { font-size: 12px; font-weight: 800; color: #ea580c; white-space: nowrap; }
+        .lm-footer { font-size: 9.5px; color: #bdbdbd; text-align: center; margin-top: 14px; padding-top: 8px; border-top: 1px solid #f0f0f0; }
+      </style>
+
+      <div class="lm-wrap">
+        <div class="lm-hero">
+          <div class="lm-hero-row">
+            <h1 class="lm-brand">LievitoMath</h1>
+            <div class="lm-date">${date}</div>
           </div>
-          <div style="margin-top:6px; font-size:13px; font-weight:600;">Lista della spesa</div>
-          <div style="margin-top:4px; font-size:12px; opacity:0.85;">
-            ${shopping.pizzaCount} pizze selezionate
+          <div class="lm-title">Lista della spesa</div>
+          <div class="lm-sub">${shopping.pizzaCount} pizze selezionate</div>
+        </div>
+
+        <div class="lm-section">
+          <div class="lm-hdr">
+            <div class="lm-bar" style="background:#0ea5e9;"></div>
+            <h2 class="lm-h2" style="color:#0ea5e9;">Pizze</h2>
+          </div>
+          <div class="lm-card">
+            <table class="lm-table">
+              ${selectedRows || `
+                <tr>
+                  <td class="lm-empty">Nessuna pizza selezionata.</td>
+                </tr>`}
+            </table>
           </div>
         </div>
 
-        <div style="margin-bottom:14px;">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
-            <div style="width:4px; height:20px; background:#0ea5e9; border-radius:2px;"></div>
-            <h2 style="font-size:14px; font-weight:700; color:#0ea5e9; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Pizze</h2>
+        <div class="lm-section">
+          <div class="lm-hdr">
+            <div class="lm-bar" style="background:#ea580c;"></div>
+            <h2 class="lm-h2" style="color:#ea580c;">Lista della spesa</h2>
           </div>
-          <table style="width:100%; border-collapse:collapse; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
-            ${selectedRows || `
-              <tr>
-                <td style="padding:12px; font-size:13px; color:#888;">Nessuna pizza selezionata.</td>
-              </tr>`}
-          </table>
+          <div class="lm-card">
+            ${shoppingItems ? `<div class="lm-columns">${shoppingItems}</div>` : `<div class="lm-empty">Aggiungi pizze dal menù.</div>`}
+          </div>
         </div>
 
-        <div style="margin-bottom:12px;">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
-            <div style="width:4px; height:20px; background:#ea580c; border-radius:2px;"></div>
-            <h2 style="font-size:14px; font-weight:700; color:#ea580c; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Lista della spesa</h2>
-          </div>
-          <table style="width:100%; border-collapse:collapse; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
-            ${shoppingRows || `
-              <tr>
-                <td colspan="3" style="padding:12px; font-size:13px; color:#888;">Aggiungi pizze dal menù.</td>
-              </tr>`}
-          </table>
-        </div>
-
-        <p style="font-size:10px; color:#ccc; text-align:center; margin-top:28px; padding-top:12px; border-top:1px solid #f0f0f0;">
+        <p class="lm-footer">
           Generato con <strong style="color:#ea580c;">LievitoMath</strong> · Lista della spesa
         </p>
       </div>
