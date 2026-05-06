@@ -4,7 +4,7 @@ import { useDoughStore } from '../../store/useDoughStore';
 import { SectionCard } from '../ui/SectionCard';
 import { yeastTypeLabel } from '../../engine/fermentation';
 import { calcSchedule, absToLabel } from '../../utils/cookingSchedule';
-import { computeShoppingList, formatAmount } from '../../utils/shoppingList';
+import { computeShoppingList } from '../../utils/shoppingList';
 
 const MODE_NAME: Record<string, string> = {
   napoletana: 'Pizza Napoletana',
@@ -206,19 +206,23 @@ export function IngredientsCard() {
     el.innerHTML = `
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link href="https://fonts.googleapis.com/css2?family=Lobster&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-      <style>@page { size: A4 portrait; margin: 8mm 10mm; } * { box-sizing: border-box; }</style>
-      <div style="font-family:'Inter',sans-serif; max-width:100%; margin:0 auto; color:#1a1a1a; font-size:11px;">
+      <style>
+        @page { size: A4 portrait; margin: 6mm 8mm; }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+      </style>
+      <div style="font-family:'Inter',sans-serif; max-width:100%; margin:0 auto; color:#1a1a1a; font-size:10.5px;">
 
         <!-- HEADER -->
-        <div style="background:linear-gradient(135deg,#ea580c,#f97316); border-radius:10px; padding:10px 14px; margin-bottom:10px; color:white; print-color-adjust:exact; -webkit-print-color-adjust:exact;">
+        <div style="background:linear-gradient(135deg,#ea580c,#f97316); border-radius:10px; padding:8px 12px; margin-bottom:8px; color:white; print-color-adjust:exact; -webkit-print-color-adjust:exact;">
           <div style="display:flex; align-items:center; justify-content:space-between;">
-            <h1 style="font-family:'Lobster',cursive; font-size:24px; margin:0; letter-spacing:0.5px; text-shadow:0 1px 3px rgba(0,0,0,0.35);">LievitoMath</h1>
-            <div style="text-align:right; font-size:12px; opacity:0.85;">${date}</div>
+            <h1 style="font-family:'Lobster',cursive; font-size:22px; margin:0; letter-spacing:0.5px; text-shadow:0 1px 3px rgba(0,0,0,0.35);">LievitoMath</h1>
+            <div style="text-align:right; font-size:11px; opacity:0.85;">${date}</div>
           </div>
-          <div style="margin-top:6px; font-size:13px; font-weight:600;">
+          <div style="margin-top:4px; font-size:12px; font-weight:600;">
             ${MODE_NAME[mode]} — ${state.pieces} × ${state.weightPerPiece}g
           </div>
-          <div style="margin-top:4px; font-size:12px; opacity:0.85;">
+          <div style="margin-top:2px; font-size:11px; opacity:0.85;">
             Idratazione ${state.hydration}% · Sale ${state.salt.toFixed(1)}%${mode !== 'pane' && state.oil > 0 ? ' · Olio EVO ' + state.oil + '%' : ''}
           </div>
         </div>
@@ -227,7 +231,7 @@ export function IngredientsCard() {
         <div style="margin-bottom:8px;">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
             <div style="width:4px; height:20px; background:#ea580c; border-radius:2px;"></div>
-            <h2 style="font-size:14px; font-weight:700; color:#ea580c; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Ingredienti</h2>
+            <h2 style="font-size:12px; font-weight:800; color:#ea580c; text-transform:uppercase; letter-spacing:0.08em; margin:0;">Ingredienti</h2>
           </div>
           ${prefermentiSplit ? `
             <div style="border:2px solid ${prefermentiSplit.prefermento.type === 'biga' ? '#fb923c' : '#c084fc'}; border-radius:10px; padding:12px; margin-bottom:12px; background:${prefermentiSplit.prefermento.type === 'biga' ? '#fff7ed' : '#faf5ff'};">
@@ -306,7 +310,7 @@ export function IngredientsCard() {
         <div style="margin-bottom:8px;">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
             <div style="width:4px; height:20px; background:#0ea5e9; border-radius:2px;"></div>
-            <h2 style="font-size:14px; font-weight:700; color:#0ea5e9; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Fasi di fermentazione</h2>
+            <h2 style="font-size:12px; font-weight:800; color:#0ea5e9; text-transform:uppercase; letter-spacing:0.08em; margin:0;">Fasi di fermentazione</h2>
           </div>
           <table style="width:100%; border-collapse:collapse;">
             ${phasesHtml}
@@ -319,7 +323,7 @@ export function IngredientsCard() {
         <div style="margin-bottom:8px; border-top:2px solid #f0f0f0; padding-top:8px;">
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
             <div style="width:4px; height:20px; background:#8b5cf6; border-radius:2px;"></div>
-            <h2 style="font-size:14px; font-weight:700; color:#8b5cf6; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Riepilogo fermentazione</h2>
+	            <h2 style="font-size:12px; font-weight:800; color:#8b5cf6; text-transform:uppercase; letter-spacing:0.08em; margin:0;">Riepilogo fermentazione</h2>
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
             <div style="background:#f5f5f5; border-radius:8px; padding:10px; text-align:center;">
@@ -373,18 +377,8 @@ export function IngredientsCard() {
               </tr>`).join('')}
           </table>
 
-          <div style="display:flex; align-items:center; gap:8px; margin:14px 0 10px;">
-            <div style="width:4px; height:20px; background:#ea580c; border-radius:2px;"></div>
-            <h2 style="font-size:14px; font-weight:800; color:#ea580c; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Lista della spesa</h2>
-          </div>
-          <table style="width:100%; border-collapse:collapse; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
-            ${shopping.items.map(([name, item], i) => `
-              <tr style="background:${i % 2 === 0 ? '#f9fafb' : 'white'}; border-bottom:1px solid #f0f0f0;">
-                <td style="padding:8px 10px; font-size:14px; font-weight:600; color:#222;">${name}${item.kind === 'tilde' && item.count > 1 ? ` [x${item.count}]` : ''}</td>
-                <td style="padding:8px 10px; text-align:right; font-size:14px; font-weight:700; color:#ea580c;">${item.kind === 'grams' ? formatAmount(item.grams) : '~'}</td>
-              </tr>`).join('')}
-          </table>
-        </div>
+	          <!-- Lista della spesa: stampala dalla sezione dedicata "Lista della spesa" -->
+	        </div>
         ` : ''}
       </div>
     `;
