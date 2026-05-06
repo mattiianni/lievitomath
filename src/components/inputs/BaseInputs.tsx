@@ -55,8 +55,8 @@ export function BaseInputs() {
     const inc = () => onChange(Math.min(max, value + 1));
 
     const btnCls =
-      'h-10 w-10 md:h-9 md:w-9 rounded-xl bg-neutral-100 dark:bg-[#0A1228] ' +
-      'text-neutral-700 dark:text-neutral-200 text-xl md:text-lg font-bold leading-none ' +
+      'h-10 w-10 md:h-8 md:w-8 rounded-xl bg-neutral-100 dark:bg-[#0A1228] ' +
+      'text-neutral-700 dark:text-neutral-200 text-xl md:text-base font-bold leading-none ' +
       'flex items-center justify-center active:scale-95 transition-transform select-none touch-manipulation';
 
     return (
@@ -64,8 +64,8 @@ export function BaseInputs() {
         <button type="button" onClick={dec} className={btnCls} aria-label="Diminuisci">
           −
         </button>
-        <div className="flex-1 min-w-0 max-w-[140px] rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] px-4 py-2 text-center flex items-center justify-center">
-          <span className="text-2xl md:text-xl font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none truncate">
+        <div className="flex-1 min-w-0 max-w-[140px] md:flex-none md:w-24 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] px-4 md:px-3 py-2 text-center flex items-center justify-center">
+          <span className="text-2xl md:text-xl font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none">
             {value}
           </span>
         </div>
