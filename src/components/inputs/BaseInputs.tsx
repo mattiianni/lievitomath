@@ -60,12 +60,12 @@ export function BaseInputs() {
       'flex items-center justify-center active:scale-95 transition-transform select-none touch-manipulation';
 
     return (
-      <div className="flex items-center gap-2 md:gap-2.5">
+      <div className="flex w-full items-center gap-2 md:gap-2.5">
         <button type="button" onClick={dec} className={btnCls} aria-label="Diminuisci">
           −
         </button>
-        <div className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] px-4 py-2 text-center w-24 md:w-20 flex items-center justify-center">
-          <span className="text-2xl md:text-xl font-bold tabular-nums text-neutral-900 dark:text-neutral-50 leading-none">
+        <div className="flex-1 min-w-0 max-w-[140px] rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] px-4 py-2 text-center flex items-center justify-center">
+          <span className="text-2xl md:text-xl font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none truncate">
             {value}
           </span>
         </div>
@@ -78,17 +78,19 @@ export function BaseInputs() {
 
   return (
     <SectionCard title="Impasto">
-      <div className="grid grid-cols-2 gap-4 mb-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{cfg.pieces}</label>
+          <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
+            {cfg.pieces}
+          </label>
           <Stepper value={s.pieces} onChange={store.setPieces} min={1} max={50} />
         </div>
         <div className="flex flex-col gap-1.5">
           <div className="flex items-baseline justify-between gap-2">
-            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-              {cfg.weight.label} (g)
+            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300 whitespace-nowrap">
+              {cfg.weight.label} <span className="text-xs text-neutral-400 dark:text-neutral-500">(g)</span>
             </label>
-            <span className="text-xs text-neutral-400 dark:text-neutral-500">{cfg.weight.hint}</span>
+            <span className="text-xs text-neutral-400 dark:text-neutral-500 whitespace-nowrap">{cfg.weight.hint}</span>
           </div>
           <Stepper value={s.weightPerPiece} onChange={store.setWeightPerPiece} min={cfg.weight.min} max={cfg.weight.max} />
         </div>
