@@ -115,82 +115,92 @@ export function FermentationPhases() {
                 isDisabled
                   ? 'border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/30 opacity-40'
                   : phase.active
-                    ? 'border-current/15 ' + phaseColor(phase.id)
+                    ? 'border-transparent dark:border-white/5 ' + phaseColor(phase.id)
                     : 'border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/30 opacity-50'
               }`}>
                 {/* Header fase */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {PHASE_ICONS[phase.id] && (
-                      <span className="text-sm">{PHASE_ICONS[phase.id]}</span>
-                    )}
-                    <span className="font-semibold text-sm">{phase.label}</span>
-                    {phase.k === 0.0 && !PHASE_ICONS[phase.id] && (
-                      <span className="text-xs opacity-60">⏸ riposo</span>
+                <div className="mb-3 flex flex-col gap-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2 flex-wrap">
+                      {PHASE_ICONS[phase.id] && (
+                        <span className="text-sm">{PHASE_ICONS[phase.id]}</span>
+                      )}
+                      <span className="font-semibold text-sm">{phase.label}</span>
+                      {phase.k === 0.0 && !PHASE_ICONS[phase.id] && (
+                        <span className="text-xs opacity-60">⏸ riposo</span>
+                      )}
+                    </div>
+                    {!phase.locked && !isDisabled && (
+                      <button
+                        onClick={() => togglePhase(phase.id)}
+                        className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border transition-colors ${
+                          phase.active
+                            ? 'border-brand-500 bg-brand-500'
+                            : 'border-neutral-500 bg-neutral-300 dark:border-neutral-500 dark:bg-neutral-700'
+                        }`}
+                        aria-label={`${phase.active ? 'Disattiva' : 'Attiva'} ${phase.label}`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                            phase.active ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {/* Pillola orario */}
-                    {phase.active && !isDisabled && schedule[phase.id] && (
-                      <div className="flex items-center gap-1 text-xs flex-shrink-0">
-                        <div className="flex items-center rounded-md border border-neutral-400 dark:border-neutral-500 overflow-hidden bg-white/40 dark:bg-black/10">
+
+                  {phase.active && !isDisabled && schedule[phase.id] && (
+                    <div className="flex flex-col items-stretch gap-1 text-xs md:items-end">
+                      <div className="flex items-center justify-between gap-2 md:justify-end">
+                        <span className="font-medium opacity-70 min-w-[44px]">Inizio</span>
+                        <div className="flex min-w-0 items-center rounded-md border border-neutral-400 dark:border-neutral-500 overflow-hidden bg-white/40 dark:bg-black/10">
                           <button
                             type="button"
                             onClick={() => updatePhaseTime(phase.id, phase.hours, 'start', -timeStepMinutes, durationBounds)}
-                            className="px-1.5 py-0.5 font-bold hover:bg-current/10"
+                            className="px-2 py-1 font-bold hover:bg-current/10 shrink-0"
                             aria-label={`Anticipa inizio ${phase.label}`}
                           >
                             −
                           </button>
-                          <span className="px-1.5 py-0.5 text-neutral-600 dark:text-neutral-300 whitespace-nowrap font-medium">
+                          <span className="px-2 py-1 text-neutral-600 dark:text-neutral-300 whitespace-nowrap font-medium min-w-[88px] text-center">
                             {absToLabel(schedule[phase.id].start)}
                           </span>
                           <button
                             type="button"
                             onClick={() => updatePhaseTime(phase.id, phase.hours, 'start', timeStepMinutes, durationBounds)}
-                            className="px-1.5 py-0.5 font-bold hover:bg-current/10"
+                            className="px-2 py-1 font-bold hover:bg-current/10 shrink-0"
                             aria-label={`Posticipa inizio ${phase.label}`}
                           >
                             +
                           </button>
                         </div>
-                        <span className="text-neutral-400">→</span>
-                        <div className="flex items-center rounded-md border border-neutral-400 dark:border-neutral-500 overflow-hidden bg-white/40 dark:bg-black/10">
+                      </div>
+                      <div className="flex items-center justify-between gap-2 md:justify-end">
+                        <span className="font-medium opacity-70 min-w-[44px]">Fine</span>
+                        <div className="flex min-w-0 items-center rounded-md border border-neutral-400 dark:border-neutral-500 overflow-hidden bg-white/40 dark:bg-black/10">
                           <button
                             type="button"
                             onClick={() => updatePhaseTime(phase.id, phase.hours, 'end', -timeStepMinutes, durationBounds)}
-                            className="px-1.5 py-0.5 font-bold hover:bg-current/10"
+                            className="px-2 py-1 font-bold hover:bg-current/10 shrink-0"
                             aria-label={`Anticipa fine ${phase.label}`}
                           >
                             −
                           </button>
-                          <span className="px-1.5 py-0.5 text-neutral-600 dark:text-neutral-300 whitespace-nowrap font-medium">
+                          <span className="px-2 py-1 text-neutral-600 dark:text-neutral-300 whitespace-nowrap font-medium min-w-[88px] text-center">
                             {absToLabel(schedule[phase.id].end)}
                           </span>
                           <button
                             type="button"
                             onClick={() => updatePhaseTime(phase.id, phase.hours, 'end', timeStepMinutes, durationBounds)}
-                            className="px-1.5 py-0.5 font-bold hover:bg-current/10"
+                            className="px-2 py-1 font-bold hover:bg-current/10 shrink-0"
                             aria-label={`Posticipa fine ${phase.label}`}
                           >
                             +
                           </button>
                         </div>
                       </div>
-                    )}
-                    {!phase.locked && !isDisabled && (
-                      <button
-                        onClick={() => togglePhase(phase.id)}
-                        className={`text-xs px-2 py-0.5 rounded-full border font-medium transition-colors flex-shrink-0 ${
-                          phase.active
-                            ? 'border-current opacity-70 hover:opacity-100'
-                            : 'border-neutral-400 text-neutral-400 hover:border-neutral-600'
-                        }`}
-                      >
-                        {phase.active ? 'ON' : 'OFF'}
-                      </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Note fasi disabilitate */}
