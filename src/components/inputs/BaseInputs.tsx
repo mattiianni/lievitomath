@@ -67,7 +67,7 @@ export function BaseInputs() {
           −
         </button>
         <div className="w-16 h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] flex items-center justify-center">
-          <span className="text-[18px] font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none">
+          <span className="text-[20px] font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none">
             {value}
           </span>
         </div>
@@ -88,19 +88,24 @@ export function BaseInputs() {
           <Stepper value={s.pieces} onChange={store.setPieces} min={1} max={50} valueLabel="numero di palline" />
         </div>
         <div className="flex flex-col gap-1.5 min-w-0">
-          <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-            {cfg.weight.label}
-          </label>
-          <div className="text-xs text-neutral-400 dark:text-neutral-500 -mt-1">
-            {cfg.weight.hint}
+          <div className="flex justify-end whitespace-nowrap">
+            <label className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+              {cfg.weight.label}
+              {'\u00A0\u00A0'}
+              <span className="text-xs font-normal text-neutral-400 dark:text-neutral-500">
+                ({cfg.weight.hint})
+              </span>
+            </label>
           </div>
-          <Stepper
-            value={s.weightPerPiece}
-            onChange={store.setWeightPerPiece}
-            min={cfg.weight.min}
-            max={cfg.weight.max}
-            valueLabel="peso"
-          />
+          <div className="flex justify-end">
+            <Stepper
+              value={s.weightPerPiece}
+              onChange={store.setWeightPerPiece}
+              min={cfg.weight.min}
+              max={cfg.weight.max}
+              valueLabel="peso"
+            />
+          </div>
         </div>
       </div>
 
