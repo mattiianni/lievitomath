@@ -7,25 +7,26 @@ import { GuidedResult } from './GuidedResult';
 import { useDoughStore } from '../store/useDoughStore';
 import { getDefaultState } from '../constants/modes';
 import { DAYS } from '../utils/cookingSchedule';
+import { Icon } from './ui/Icon';
 
 // ── Dati step ────────────────────────────────────────────────────────────────
 
 const MODES = [
-  { id: 'napoletana' as DoughMode, emoji: '🍕', label: 'Verace', sub: 'Disciplinare AVPN' },
-  { id: 'teglia'     as DoughMode, emoji: '🫓', label: 'Teglia',     sub: 'Stile Bonci' },
-  { id: 'pane'       as DoughMode, emoji: '🍞', label: 'Pane',       sub: 'Lievitazione lunga' },
+  { id: 'napoletana' as DoughMode, icon: 'local_pizza', label: 'Verace', sub: 'Disciplinare AVPN' },
+  { id: 'teglia'     as DoughMode, icon: 'outdoor_grill', label: 'Teglia', sub: 'Stile Bonci' },
+  { id: 'pane'       as DoughMode, icon: 'bakery_dining', label: 'Pane', sub: 'Lievitazione lunga' },
 ];
 
 const YEAST_OPTS = [
-  { id: 'fresh',       emoji: '🍺', label: 'Fresco',   sub: 'Cubetto LdB 25g' },
-  { id: 'instant_dry', emoji: '✨', label: 'Secco',    sub: 'IDY (es. Caputo)' },
-  { id: 'naturale',    emoji: '🍶', label: 'Naturale', sub: 'Madre / Li.Co.Li' },
+  { id: 'fresh',       icon: 'science', label: 'Fresco',   sub: 'Cubetto LdB 25g' },
+  { id: 'instant_dry', icon: 'grain', label: 'Secco',    sub: 'IDY (es. Caputo)' },
+  { id: 'naturale',    icon: 'auto_fix_high', label: 'Naturale', sub: 'Madre / Li.Co.Li' },
 ];
 
 const PREF_OPTS = [
-  { id: 'none',    emoji: '➖', label: 'Nessuno',  sub: 'Impasto diretto' },
-  { id: 'biga',    emoji: '🧱', label: 'Biga',     sub: 'Metodo Giorilli 18h' },
-  { id: 'poolish', emoji: '💧', label: 'Poolish',  sub: 'Metodo francese 12h' },
+  { id: 'none',    icon: 'remove', label: 'Nessuno',  sub: 'Impasto diretto' },
+  { id: 'biga',    icon: 'inventory_2', label: 'Biga',     sub: 'Metodo Giorilli 18h' },
+  { id: 'poolish', icon: 'water_drop', label: 'Poolish',  sub: 'Metodo francese 12h' },
 ];
 
 const DEFAULT_PIECES: Record<DoughMode, number> = { napoletana: 4, teglia: 2, pane: 1 };
@@ -227,14 +228,14 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
 
       {/* ① COSA VUOI FARE */}
       <StepCard n={1} title="Cosa vuoi fare?" done={step > 1}
-        doneLabel={MODES.find(m => m.id === answers.mode)?.emoji + ' ' + MODES.find(m => m.id === answers.mode)?.label}
+        doneLabel={MODES.find(m => m.id === answers.mode)?.label}
         onEdit={() => goBack(1)}>
         <div className="grid grid-cols-3 gap-3">
           {MODES.map(m => (
             <button key={m.id}
               onClick={() => advance(2, { mode: m.id, pieces: DEFAULT_PIECES[m.id] })}
               className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-transparent bg-gray-50 dark:bg-[#0A1228]/60 hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all active:scale-95">
-              <span className="text-4xl">{m.emoji}</span>
+              <Icon name={m.icon} className="text-4xl" />
               <span className="text-sm font-bold text-gray-900 dark:text-white">{m.label}</span>
               <span className="text-[10px] text-gray-400">{m.sub}</span>
             </button>
@@ -264,14 +265,14 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
       {/* ③ TEMPERATURA AMBIENTE */}
       {step >= 3 && (
         <StepCard n={3} title="Temperatura ambiente?" done={step > 3}
-          doneLabel={`${answers.ambientTemp}°C ${answers.ambientTemp <= 18 ? '❄️' : answers.ambientTemp <= 25 ? '🌡️' : '🔥'}`}
+          doneLabel={`${answers.ambientTemp}°C`}
           onEdit={() => goBack(3)}>
           <div className="text-center mb-4">
             <span className="text-4xl font-bold text-brand-500">{answers.ambientTemp}°C</span>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{
-              answers.ambientTemp <= 18 ? '❄️ Fresco — il lievito lavora più lentamente'
-              : answers.ambientTemp <= 25 ? '🌡️ Tiepido — condizioni ideali'
-              : '🔥 Caldo — attenzione alla fermentazione!'
+              answers.ambientTemp <= 18 ? 'Fresco — il lievito lavora più lentamente'
+              : answers.ambientTemp <= 25 ? 'Tiepido — condizioni ideali'
+              : 'Caldo — attenzione alla fermentazione!'
             }</p>
           </div>
           <SliderWithButtons min={15} max={35} step={1}
@@ -292,8 +293,8 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
         <StepCard n={4} title="Che tipo di lievito usi?" done={step > 4}
           doneLabel={
             answers.yeastMain === 'naturale'
-              ? `🍶 ${answers.yeastSub === 'madre' ? 'Lievito Madre (idro 50%)' : 'Li.Co.Li (idro 100%)'}`
-              : YEAST_OPTS.find(y => y.id === answers.yeastMain)?.emoji + ' ' + YEAST_OPTS.find(y => y.id === answers.yeastMain)?.label
+              ? `${answers.yeastSub === 'madre' ? 'Lievito Madre (idro 50%)' : 'Li.Co.Li (idro 100%)'}`
+              : YEAST_OPTS.find(y => y.id === answers.yeastMain)?.label
           }
           onEdit={() => goBack(4)}>
           <div className="flex flex-col gap-2">
@@ -308,7 +309,7 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
                     ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20'
                     : 'border-transparent bg-gray-50 dark:bg-[#0A1228]/60 hover:border-brand-300'
                 }`}>
-                <span className="text-2xl">{y.emoji}</span>
+                <Icon name={y.icon} className="text-2xl" />
                 <div>
                   <div className="font-semibold text-sm text-gray-900 dark:text-white">{y.label}</div>
                   <div className="text-xs text-gray-400">{y.sub}</div>
@@ -320,8 +321,8 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">Tipo di lievito naturale</p>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { id: 'madre', label: '🫙 Madre', sub: 'Idratazione 50%' },
-                    { id: 'licoli', label: '💧 Li.Co.Li', sub: 'Idratazione 100%' },
+                    { id: 'madre', icon: 'jar', label: 'Madre', sub: 'Idratazione 50%' },
+                    { id: 'licoli', icon: 'water_drop', label: 'Li.Co.Li', sub: 'Idratazione 100%' },
                   ].map(s => (
                     <button key={s.id}
                       onClick={() => setAnswers(a => ({ ...a, yeastSub: s.id as 'madre' | 'licoli' }))}
@@ -330,7 +331,10 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
                           ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20'
                           : 'border-transparent bg-gray-50 dark:bg-[#0A1228]/60'
                       }`}>
-                      <div className="text-sm font-semibold text-gray-900 dark:text-white">{s.label}</div>
+                      <div className="text-sm font-semibold text-gray-900 dark:text-white inline-flex items-center gap-1.5">
+                        <Icon name={s.icon} className="text-base" />
+                        {s.label}
+                      </div>
                       <div className="text-xs text-gray-400">{s.sub}</div>
                     </button>
                   ))}
@@ -348,17 +352,17 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
       {/* ⑤ FRIGO */}
       {step >= 5 && (
         <StepCard n={5} title="Userai il frigo per la lievitazione?" done={step > 5}
-          doneLabel={answers.usesFridge ? '✅ Sì, frigo' : '❌ No, tutto a temperatura ambiente'}
+          doneLabel={answers.usesFridge ? 'Sì, frigo' : 'No, tutto a temperatura ambiente'}
           onEdit={() => goBack(5)}>
           <div className="flex flex-col gap-3">
             {[
-              { val: true,  emoji: '✅', label: 'Sì, uso il frigo',       sub: 'Lievitazione più lenta e saporita' },
-              { val: false, emoji: '❌', label: 'No, solo a temperatura', sub: 'Più rapido, gestione più semplice' },
+              { val: true,  icon: 'check_circle', label: 'Sì, uso il frigo',       sub: 'Lievitazione più lenta e saporita' },
+              { val: false, icon: 'cancel', label: 'No, solo a temperatura', sub: 'Più rapido, gestione più semplice' },
             ].map(opt => (
               <button key={String(opt.val)}
                 onClick={() => advance(opt.val ? 6 : 7, { usesFridge: opt.val, staglioAFreddo: opt.val ? null : false })}
                 className="flex items-center gap-4 p-4 rounded-xl border-2 border-transparent bg-gray-50 dark:bg-[#0A1228]/60 hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all text-left">
-                <span className="text-2xl">{opt.emoji}</span>
+                <Icon name={opt.icon} className="text-2xl" />
                 <div>
                   <div className="font-semibold text-sm text-gray-900 dark:text-white">{opt.label}</div>
                   <div className="text-xs text-gray-400">{opt.sub}</div>
@@ -372,19 +376,19 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
       {/* ⑥ STAGLIO TIMING (solo se frigo = sì) */}
       {step >= 6 && answers.usesFridge && (
         <StepCard n={6} title="Quando fai lo staglio?" done={step > 6}
-          doneLabel={answers.staglioAFreddo ? '⏪ Panetti in frigo' : '⏩ Massa in frigo'}
+          doneLabel={answers.staglioAFreddo ? 'Panetti in frigo' : 'Massa in frigo'}
           onEdit={() => goBack(6)}>
           <div className="flex flex-col gap-3">
             {[
               {
                 val: false,
-                emoji: '⏩',
+                icon: 'keyboard_double_arrow_right',
                 label: 'Staglio dopo il frigo',
                 sub: 'La massa intera va in frigo. Staglio e appretto lungo all\'uscita.',
               },
               {
                 val: true,
-                emoji: '⏪',
+                icon: 'keyboard_double_arrow_left',
                 label: 'Staglio prima del frigo',
                 sub: 'Formi i panetti, poi vanno in frigo. Appretto breve all\'uscita.',
               },
@@ -392,7 +396,7 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
               <button key={String(opt.val)}
                 onClick={() => advance(7, { staglioAFreddo: opt.val })}
                 className="flex items-center gap-4 p-4 rounded-xl border-2 border-transparent bg-gray-50 dark:bg-[#0A1228]/60 hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all text-left">
-                <span className="text-2xl">{opt.emoji}</span>
+                <Icon name={opt.icon} className="text-2xl" />
                 <div>
                   <div className="font-semibold text-sm text-gray-900 dark:text-white">{opt.label}</div>
                   <div className="text-xs text-gray-400">{opt.sub}</div>
@@ -406,7 +410,7 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
       {/* ⑦ PREFERMENTO */}
       {step >= 7 && (
         <StepCard n={7} title="Vuoi usare un prefermento?" done={step > 7}
-          doneLabel={PREF_OPTS.find(p => p.id === answers.prefermento)?.emoji + ' ' + PREF_OPTS.find(p => p.id === answers.prefermento)?.label}
+          doneLabel={PREF_OPTS.find(p => p.id === answers.prefermento)?.label}
           onEdit={() => goBack(7)}>
           <div className="flex flex-col gap-2">
             {PREF_OPTS.map(p => {
@@ -419,7 +423,7 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
                       ? 'opacity-35 cursor-not-allowed border-transparent bg-gray-50 dark:bg-[#0A1228]/40'
                       : 'border-transparent bg-gray-50 dark:bg-[#0A1228]/60 hover:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20'
                   }`}>
-                  <span className="text-2xl">{p.emoji}</span>
+                  <Icon name={p.icon} className="text-2xl" />
                   <div>
                     <div className="font-semibold text-sm text-gray-900 dark:text-white">{p.label}
                       {disabled && <span className="ml-2 text-xs text-gray-400">(non compatibile con lievito naturale)</span>}
@@ -502,7 +506,10 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
           <button onClick={handleCalculate}
             className="w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95"
             style={{ background: 'linear-gradient(135deg,#ea580c,#f97316)', fontSize: '1rem' }}>
-            🍞 CALCOLA INGREDIENTI
+            <span className="inline-flex items-center justify-center gap-2">
+              <Icon name="calculate" className="text-xl" />
+              CALCOLA INGREDIENTI
+            </span>
           </button>
         </StepCard>
       )}

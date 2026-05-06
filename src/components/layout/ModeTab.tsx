@@ -1,10 +1,11 @@
 import { useDoughStore } from '../../store/useDoughStore';
 import type { DoughMode } from '../../types/dough';
+import { Icon } from '../ui/Icon';
 
-const MODES: { id: DoughMode; label: string; emoji: string; desc: string }[] = [
-  { id: 'napoletana', label: 'Verace', emoji: '🍕', desc: 'Disciplinare AVPN' },
-  { id: 'teglia',     label: 'Teglia',     emoji: '🫓', desc: 'Stile Bonci' },
-  { id: 'pane',       label: 'Pane',       emoji: '🍞', desc: 'Lievitazione lunga' },
+const MODES: { id: DoughMode; label: string; icon: string; desc: string }[] = [
+  { id: 'napoletana', label: 'Verace', icon: 'local_pizza', desc: 'Disciplinare AVPN' },
+  { id: 'teglia',     label: 'Teglia', icon: 'outdoor_grill', desc: 'Stile Bonci' },
+  { id: 'pane',       label: 'Pane', icon: 'bakery_dining', desc: 'Lievitazione lunga' },
 ];
 
 export function ModeTab() {
@@ -23,7 +24,7 @@ export function ModeTab() {
               : 'text-[#616B8F] dark:text-[#A19677] hover:bg-white/40 dark:hover:bg-[#1C2548]/50'
           }`}
         >
-          <span className="text-lg">{m.emoji}</span>
+          <Icon name={m.icon} className="text-[20px]" />
           <span className="font-semibold">{m.label}</span>
           <span className="text-xs opacity-70 hidden sm:block">{m.desc}</span>
         </button>

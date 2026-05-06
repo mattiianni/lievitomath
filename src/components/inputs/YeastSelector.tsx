@@ -1,11 +1,12 @@
 import { useDoughStore } from '../../store/useDoughStore';
 import { SectionCard } from '../ui/SectionCard';
 import type { YeastType } from '../../types/dough';
+import { Icon } from '../ui/Icon';
 
-const MAIN_OPTIONS: { id: YeastType; label: string; sublabel: string; emoji: string }[] = [
-  { id: 'fresh',       label: 'Fresco',   sublabel: 'Cubetto 25g',      emoji: '🍺' },
-  { id: 'instant_dry', label: 'Secco',    sublabel: 'IDY (es. Caputo)', emoji: '✨' },
-  { id: 'madre',       label: 'Naturale', sublabel: 'Madre / Li.Co.Li', emoji: '🍶' },
+const MAIN_OPTIONS: { id: YeastType; label: string; sublabel: string; icon: string }[] = [
+  { id: 'fresh',       label: 'Fresco',   sublabel: 'Cubetto 25g',      icon: 'science' },
+  { id: 'instant_dry', label: 'Secco',    sublabel: 'IDY (es. Caputo)', icon: 'grain' },
+  { id: 'madre',       label: 'Naturale', sublabel: 'Madre / Li.Co.Li', icon: 'auto_fix_high' },
 ];
 
 export function YeastSelector() {
@@ -36,7 +37,7 @@ export function YeastSelector() {
                   : 'border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:border-neutral-300 dark:hover:border-neutral-600'
               }`}
             >
-              <span className="text-2xl">{opt.emoji}</span>
+              <Icon name={opt.icon} className="text-2xl" />
               <span className="text-xs font-semibold leading-tight">{opt.label}</span>
               <span className="text-xs opacity-60 leading-tight">{opt.sublabel}</span>
             </button>
@@ -55,7 +56,10 @@ export function YeastSelector() {
                 : 'border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 hover:border-neutral-300'
             }`}
           >
-            🫙 Madre · idro 50%
+            <span className="inline-flex items-center justify-center gap-1.5">
+              <Icon name="jar" className="text-base" />
+              Madre · idro 50%
+            </span>
           </button>
           <button
             onClick={() => setYeastType('licoli')}
@@ -65,7 +69,10 @@ export function YeastSelector() {
                 : 'border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 hover:border-neutral-300'
             }`}
           >
-            💧 Li.Co.Li · idro 100%
+            <span className="inline-flex items-center justify-center gap-1.5">
+              <Icon name="water_drop" className="text-base" />
+              Li.Co.Li · idro 100%
+            </span>
           </button>
         </div>
       )}

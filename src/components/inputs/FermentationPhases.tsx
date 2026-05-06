@@ -5,6 +5,7 @@ import { useCalculation } from '../../hooks/useCalculation';
 import { q10Factor } from '../../engine/fermentation';
 import { SectionCard } from '../ui/SectionCard';
 import { calcSchedule, absToLabel } from '../../utils/cookingSchedule';
+import { Icon } from '../ui/Icon';
 
 // Palette muted/desaturata (fornita utente — "palette scura")
 // Swatch (sx→dx): #8B9EC4 #9E9278 #D9C27A #6B7EA4 #6A5535 #252B3C
@@ -21,11 +22,11 @@ const PHASE_COLORS: Record<string, string> = {
 };
 
 const PHASE_ICONS: Record<string, string> = {
-  biga:     '🍞',
-  poolish:  '💧',
-  autolisi: '⏸',
-  impasto:  '🤌',
-  frigo:    '❄️',
+  biga:     'inventory_2',
+  poolish:  'water_drop',
+  autolisi: 'pause_circle',
+  impasto:  'mix',
+  frigo:    'ac_unit',
 };
 
 function phaseColor(id: string) {
@@ -123,11 +124,14 @@ export function FermentationPhases() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-2 flex-wrap">
                       {PHASE_ICONS[phase.id] && (
-                        <span className="text-sm">{PHASE_ICONS[phase.id]}</span>
+                        <Icon name={PHASE_ICONS[phase.id]} className="text-[18px]" />
                       )}
                       <span className="font-semibold text-sm">{phase.label}</span>
                       {phase.k === 0.0 && !PHASE_ICONS[phase.id] && (
-                        <span className="text-xs opacity-60">⏸ riposo</span>
+                        <span className="text-xs opacity-60">
+                          <Icon name="pause_circle" className="text-sm mr-1" />
+                          riposo
+                        </span>
                       )}
                     </div>
                     {!phase.locked && !isDisabled && (
@@ -353,7 +357,7 @@ export function FermentationPhases() {
                     {/* Preview grammi biga/poolish */}
                     {isPrefermento && result?.prefermentiSplit && (
                       <div className="pt-2 border-t border-current/15 text-xs opacity-80">
-                        {phase.id === 'biga' ? '🍞' : '💧'}{' '}
+                        <Icon name={phase.id === 'biga' ? 'inventory_2' : 'water_drop'} className="text-base mr-1" />{' '}
                         <strong>{result.prefermentiSplit.prefermento.flour}g</strong> farina +{' '}
                         <strong>{result.prefermentiSplit.prefermento.water}g</strong> acqua
                         {' '}(idro {result.prefermentiSplit.prefermento.hydration}%)
