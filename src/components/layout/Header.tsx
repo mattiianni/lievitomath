@@ -11,7 +11,7 @@ export function Header() {
         <img
           src="/logo.png"
           alt="Pizzeria da Mattia"
-          className="h-[110px] w-auto object-contain"
+          className="h-[84px] sm:h-[96px] w-auto object-contain"
           onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
         />
         <div>
@@ -21,7 +21,7 @@ export function Header() {
           >
             LievitoMath
           </h1>
-          <p className="text-[11px] text-white/90 dark:text-white/80 mt-0.5 tracking-wide leading-tight">
+          <p className="text-[11px] text-white/90 dark:text-white/80 mt-1.5 tracking-wide leading-tight">
             @Mattia Ianniello
           </p>
           <p className="text-[11px] text-white/80 dark:text-white/70 tracking-wide leading-tight">
