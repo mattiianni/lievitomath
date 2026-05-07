@@ -57,7 +57,7 @@ export function YeastSelector() {
             }`}
           >
             <span className="inline-flex items-center justify-center gap-1.5">
-              <Icon name="bread" className="text-base" />
+              <Icon name="lunch_dining" className="text-base" />
               Madre · idro 50%
             </span>
           </button>

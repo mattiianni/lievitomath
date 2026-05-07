@@ -14,7 +14,7 @@ import { Icon } from './ui/Icon';
 const MODES = [
   { id: 'napoletana' as DoughMode, icon: 'local_pizza', label: 'Verace', sub: 'Disciplinare AVPN' },
   { id: 'teglia'     as DoughMode, icon: 'microwave', label: 'Teglia', sub: 'Stile Bonci' },
-  { id: 'pane'       as DoughMode, icon: 'bread', label: 'Pane', sub: 'Lievitazione lunga' },
+  { id: 'pane'       as DoughMode, icon: 'lunch_dining', label: 'Pane', sub: 'Lievitazione lunga' },
 ];
 
 const YEAST_OPTS = [
@@ -325,7 +325,7 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">Tipo di lievito naturale</p>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { id: 'madre', icon: 'bread', label: 'Madre', sub: 'Idratazione 50%' },
+                    { id: 'madre', icon: 'lunch_dining', label: 'Madre', sub: 'Idratazione 50%' },
                     { id: 'licoli', icon: 'water_drop', label: 'Li.Co.Li', sub: 'Idratazione 100%' },
                   ].map(s => (
                     <button key={s.id}

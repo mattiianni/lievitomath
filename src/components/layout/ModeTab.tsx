@@ -5,7 +5,7 @@ import { Icon } from '../ui/Icon';
 const MODES: { id: DoughMode; label: string; icon: string; desc: string }[] = [
   { id: 'napoletana', label: 'Verace', icon: 'local_pizza', desc: 'Disciplinare AVPN' },
   { id: 'teglia',     label: 'Teglia', icon: 'microwave', desc: 'Stile Bonci' },
-  { id: 'pane',       label: 'Pane', icon: 'bread', desc: 'Lievitazione lunga' },
+  { id: 'pane',       label: 'Pane', icon: 'lunch_dining', desc: 'Lievitazione lunga' },
 ];
 
 export function ModeTab() {
