@@ -120,7 +120,7 @@ export default function App() {
             @ Mattia Ianniello - Versione {APP_VERSION} - {APP_DATE}
           </p>
           <p className="text-xs text-white/75 dark:text-white/70 leading-tight">
-            Algoritmo Q10 fermentativo · Disciplinare AVPN · Metodo Bonci per teglia
+            Algoritmo Q10 fermentativo · Disciplinare AVPN
           </p>
         </footer>
       </main>
