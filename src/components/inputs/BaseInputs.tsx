@@ -78,12 +78,10 @@ export function BaseInputs() {
         </button>
         {editable ? (
           <input
-            type="number"
+            type="text"
             inputMode="numeric"
+            pattern="[0-9]*"
             value={weightDraft}
-            min={min}
-            max={max}
-            step={1}
             onFocus={e => {
               setWeightEditing(true);
               // Assicura che il campo rifletta il valore attuale quando si entra in edit
@@ -91,7 +89,10 @@ export function BaseInputs() {
               e.currentTarget.select();
             }}
             onChange={e => {
-              setWeightDraft(e.currentTarget.value);
+              // Permetti input intermedi (es. "9" -> "97" -> "970") anche su iOS/Safari:
+              // niente clamp qui, solo digits.
+              const next = e.currentTarget.value.replace(/[^\d]/g, '');
+              setWeightDraft(next);
             }}
             onKeyDown={e => {
               if (e.key === 'Enter') {
