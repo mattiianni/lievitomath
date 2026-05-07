@@ -44,12 +44,14 @@ export function BaseInputs() {
   const [weightDraft, setWeightDraft] = useState(String(s.weightPerPiece));
   const [weightEditing, setWeightEditing] = useState(false);
   const weightInputRef = useRef<HTMLInputElement | null>(null);
+  const weightSelectedOnceRef = useRef(false);
 
   useEffect(() => {
     if (!weightEditing) {
       const next = String(s.weightPerPiece);
       setWeightDraft(next);
       if (weightInputRef.current) weightInputRef.current.value = next;
+      weightSelectedOnceRef.current = false;
     }
   }, [s.weightPerPiece, weightEditing]);
 
@@ -93,7 +95,12 @@ export function BaseInputs() {
             spellCheck={false}
             onFocus={e => {
               setWeightEditing(true);
-              e.currentTarget.select();
+              // Seleziona tutto solo la prima volta che si entra nel campo:
+              // su Safari/macOS alcuni edge-case possono ri-selezionare e far "sovrascrivere" cifra per cifra.
+              if (!weightSelectedOnceRef.current) {
+                weightSelectedOnceRef.current = true;
+                queueMicrotask(() => e.currentTarget.select());
+              }
             }}
             onInput={e => {
               const input = e.currentTarget as HTMLInputElement;
@@ -108,6 +115,7 @@ export function BaseInputs() {
             }}
             onBlur={() => {
               setWeightEditing(false);
+              weightSelectedOnceRef.current = false;
               const raw = weightDraft.trim();
               if (raw === '') {
                 const next = String(value);
