@@ -2,7 +2,7 @@ import { useDoughStore } from '../../store/useDoughStore';
 import { SectionCard } from '../ui/SectionCard';
 import { Slider } from '../ui/Slider';
 import type { DoughMode } from '../../types/dough';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface ModeConfig {
   pieces: string;
@@ -41,12 +41,15 @@ export function BaseInputs() {
   const store = useDoughStore();
   const cfg = MODE_CONFIG[s.mode];
 
-  const [weightDraft, setWeightDraft] = useState(String(s.weightPerPiece));
   const [weightEditing, setWeightEditing] = useState(false);
+  const weightInputRef = useRef<HTMLInputElement | null>(null);
+
+  const weightDefaultValue = useMemo(() => String(s.weightPerPiece), [s.weightPerPiece]);
 
   useEffect(() => {
-    if (!weightEditing) {
-      setWeightDraft(String(s.weightPerPiece));
+    // Se non stiamo editando, riallinea il valore visualizzato
+    if (!weightEditing && weightInputRef.current) {
+      weightInputRef.current.value = String(s.weightPerPiece);
     }
   }, [s.weightPerPiece, weightEditing]);
 
@@ -86,16 +89,14 @@ export function BaseInputs() {
             autoComplete="off"
             autoCorrect="off"
             spellCheck={false}
-            value={weightDraft}
-            onFocus={() => {
-              setWeightEditing(true);
-              // Non forzare select(): su Safari/Chrome può causare comportamenti strani col caret.
-            }}
-            onChange={e => {
-              // Consenti digitazione multi-cifra ovunque (desktop + iOS):
-              // aggiorna solo la bozza; applichiamo allo store su blur/Enter.
-              const next = e.currentTarget.value.replace(/[^\d]/g, '');
-              setWeightDraft(next);
+            defaultValue={weightDefaultValue}
+            ref={weightInputRef}
+            onFocus={() => setWeightEditing(true)}
+            onInput={e => {
+              // Filtra in place senza triggerare re-render ad ogni tasto (evita blur/focus glitch su Safari).
+              const input = e.currentTarget as HTMLInputElement;
+              const next = input.value.replace(/[^\d]/g, '');
+              if (next !== input.value) input.value = next;
             }}
             onKeyDown={e => {
               if (e.key === 'Enter') {
@@ -104,20 +105,20 @@ export function BaseInputs() {
             }}
             onBlur={() => {
               setWeightEditing(false);
-              const raw = weightDraft.trim();
+              const raw = (weightInputRef.current?.value ?? '').trim();
               if (raw === '') {
-                setWeightDraft(String(value));
+                if (weightInputRef.current) weightInputRef.current.value = String(value);
                 return;
               }
               const parsed = Math.round(Number(raw));
               if (Number.isNaN(parsed)) {
-                setWeightDraft(String(value));
+                if (weightInputRef.current) weightInputRef.current.value = String(value);
                 return;
               }
               // Campo "libero": niente min/max qui, solo >= 1
               const next = Math.max(1, parsed);
               onChange(next);
-              setWeightDraft(String(next));
+              if (weightInputRef.current) weightInputRef.current.value = String(next);
             }}
             className="w-[76px] h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] text-center text-[21px] font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none outline-none focus:border-brand-500"
             aria-label={valueLabel}
