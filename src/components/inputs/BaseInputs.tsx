@@ -46,12 +46,14 @@ export function BaseInputs() {
     min,
     max,
     valueLabel,
+    editable = false,
   }: {
     value: number;
     onChange: (v: number) => void;
     min: number;
     max: number;
     valueLabel: string;
+    editable?: boolean;
   }) => {
     const dec = () => onChange(Math.max(min, value - 1));
     const inc = () => onChange(Math.min(max, value + 1));
@@ -66,11 +68,32 @@ export function BaseInputs() {
         <button type="button" onClick={dec} className={btnCls} aria-label={`Diminuisci ${valueLabel}`}>
           −
         </button>
-        <div className="w-16 h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] flex items-center justify-center">
-          <span className="text-[21px] font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none">
-            {value}
-          </span>
-        </div>
+        {editable ? (
+          <input
+            type="number"
+            inputMode="numeric"
+            value={String(value)}
+            min={min}
+            max={max}
+            step={1}
+            onFocus={e => e.currentTarget.select()}
+            onChange={e => {
+              const raw = e.currentTarget.value;
+              if (raw.trim() === '') return;
+              const next = Math.round(Number(raw));
+              if (Number.isNaN(next)) return;
+              onChange(Math.min(max, Math.max(min, next)));
+            }}
+            className="w-16 h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] text-center text-[21px] font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none outline-none focus:border-brand-500"
+            aria-label={valueLabel}
+          />
+        ) : (
+          <div className="w-16 h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] flex items-center justify-center">
+            <span className="text-[21px] font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none">
+              {value}
+            </span>
+          </div>
+        )}
         <button type="button" onClick={inc} className={btnCls} aria-label={`Aumenta ${valueLabel}`}>
           +
         </button>
@@ -104,6 +127,7 @@ export function BaseInputs() {
               min={cfg.weight.min}
               max={cfg.weight.max}
               valueLabel="peso"
+              editable
             />
           </div>
         </div>
