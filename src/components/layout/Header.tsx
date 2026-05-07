@@ -1,5 +1,4 @@
 import { useTheme } from '../../hooks/useTheme';
-import { APP_VERSION, APP_DATE } from '../../version';
 
 export function Header() {
   const { dark, toggle } = useTheme();
@@ -21,12 +20,6 @@ export function Header() {
           >
             LievitoMath
           </h1>
-          <p className="text-[11px] text-white/90 dark:text-white/80 mt-1.5 tracking-wide leading-tight">
-            @Mattia Ianniello
-          </p>
-          <p className="text-[11px] text-white/80 dark:text-white/70 tracking-wide leading-tight">
-            v{APP_VERSION} · {APP_DATE}
-          </p>
         </div>
       </div>
       <button

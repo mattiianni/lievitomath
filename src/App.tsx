@@ -14,6 +14,8 @@ import { CookingTimeInput } from './components/inputs/CookingTimeInput';
 import { StaglioSelector } from './components/inputs/StaglioSelector';
 import { ShoppingListCard } from './components/outputs/ShoppingListCard';
 import { useDoughStore } from './store/useDoughStore';
+import { Icon } from './components/ui/Icon';
+import { APP_DATE, APP_VERSION } from './version';
 
 export default function App() {
   const [guidedMode, setGuidedMode] = useState(false);
@@ -69,7 +71,7 @@ export default function App() {
               <StaglioSelector />
               <CookingTimeInput />
               <FermentationPhases />
-              <IngredientsCard />
+              <IngredientsCard shoppingListEnabled={shoppingAllowed && shoppingList} />
               <WBlendCard />
               <FlourActual />
             </div>
@@ -81,7 +83,7 @@ export default function App() {
             {/* Toggle Lista della Spesa — solo Napoletana */}
             <div className="mt-6 flex items-center justify-between px-4 py-3 rounded-2xl bg-white/10 dark:bg-white/5 border border-white/20 dark:border-white/10">
               <div className="flex items-center gap-3">
-                <span className="text-lg">🛒</span>
+                <Icon name="shopping_cart" className="text-[20px] text-white/90 dark:text-white/80" />
                 <div>
                   <p className="text-sm font-semibold text-white dark:text-white/90">Lista della Spesa</p>
                   <p className="text-xs text-white/60 dark:text-white/50">Cose da comprare</p>
@@ -114,7 +116,10 @@ export default function App() {
           <div style={{ fontFamily: 'Lobster, cursive' }} className="text-xl text-white dark:text-white/80 mb-0.5">
             LievitoMath
           </div>
-          <p className="text-xs text-white/75 dark:text-white/70">
+          <p className="text-xs text-white/80 dark:text-white/75 leading-tight">
+            @ Mattia Ianniello - Versione {APP_VERSION} - {APP_DATE}
+          </p>
+          <p className="text-xs text-white/75 dark:text-white/70 leading-tight">
             Algoritmo Q10 fermentativo · Disciplinare AVPN · Metodo Bonci per teglia
           </p>
         </footer>

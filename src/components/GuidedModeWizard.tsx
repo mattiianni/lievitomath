@@ -13,8 +13,8 @@ import { Icon } from './ui/Icon';
 
 const MODES = [
   { id: 'napoletana' as DoughMode, icon: 'local_pizza', label: 'Verace', sub: 'Disciplinare AVPN' },
-  { id: 'teglia'     as DoughMode, icon: 'outdoor_grill', label: 'Teglia', sub: 'Stile Bonci' },
-  { id: 'pane'       as DoughMode, icon: 'bakery_dining', label: 'Pane', sub: 'Lievitazione lunga' },
+  { id: 'teglia'     as DoughMode, icon: 'microwave', label: 'Teglia', sub: 'Stile Bonci' },
+  { id: 'pane'       as DoughMode, icon: 'bread', label: 'Pane', sub: 'Lievitazione lunga' },
 ];
 
 const YEAST_OPTS = [
@@ -95,7 +95,11 @@ function StepCard({ n, title, done, doneLabel, onEdit, children }: StepCardProps
               onClick={onEdit}
               className="flex-1 text-left text-sm font-semibold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-[#0A1228]/60 rounded-xl px-4 py-2 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors truncate"
             >
-              {doneLabel} <span className="text-[10px] text-gray-400 ml-1">✏️ modifica</span>
+              {doneLabel}{' '}
+              <span className="text-[10px] text-gray-400 ml-1 inline-flex items-center gap-1">
+                <Icon name="edit" className="text-[12px]" />
+                modifica
+              </span>
             </button>
           </>
         ) : (
@@ -321,7 +325,7 @@ export function GuidedModeWizard({ onClose }: { onClose: () => void }) {
                 <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">Tipo di lievito naturale</p>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { id: 'madre', icon: 'jar', label: 'Madre', sub: 'Idratazione 50%' },
+                    { id: 'madre', icon: 'bread', label: 'Madre', sub: 'Idratazione 50%' },
                     { id: 'licoli', icon: 'water_drop', label: 'Li.Co.Li', sub: 'Idratazione 100%' },
                   ].map(s => (
                     <button key={s.id}

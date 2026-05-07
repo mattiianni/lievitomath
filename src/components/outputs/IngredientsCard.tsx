@@ -19,7 +19,11 @@ function phaseTimeLabel(hours: number): string {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-export function IngredientsCard() {
+interface IngredientsCardProps {
+  shoppingListEnabled?: boolean;
+}
+
+export function IngredientsCard({ shoppingListEnabled = false }: IngredientsCardProps) {
   const result = useCalculation();
   const mode = useDoughStore(s => s.state.mode);
   const state = useDoughStore(s => s.state);
@@ -96,6 +100,14 @@ export function IngredientsCard() {
     const phases = state.phases.filter(p => p.active && p.hours > 0);
     const printSchedule = calcSchedule(phases, cookingDay, cookingTime);
     const shopping = computeShoppingList(shoppingPizzas);
+    const shoppingItems = shopping.items
+      .map(([name, item], index) => `
+        <div class="lm-item ${index % 2 === 0 ? 'lm-item-alt' : ''}">
+          <span class="lm-box" aria-hidden="true"></span>
+          <div class="lm-name">${name}${item.kind === 'tilde' && item.count > 1 ? ` <span class="lm-multi">[x${item.count}]</span>` : ''}</div>
+          <div class="lm-amt">${item.kind === 'grams' ? item.grams.toFixed(0) + ' g' : '~'}</div>
+        </div>`)
+      .join('');
 
     const phaseColors: Record<string, string> = {
       biga:     '#c9a840',
@@ -210,6 +222,15 @@ export function IngredientsCard() {
         @page { size: A4 portrait; margin: 6mm 8mm; }
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; }
+        .lm-card { border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
+        .lm-empty { padding: 10px; font-size: 12px; color: #888; }
+        .lm-columns { column-count: 2; column-gap: 10px; padding: 6px; }
+        .lm-item { break-inside: avoid; display: grid; grid-template-columns: 20px 1fr auto; gap: 8px; align-items: center; padding: 5px 6px; border-radius: 8px; }
+        .lm-item-alt { background: #f9fafb; }
+        .lm-box { width: 14px; height: 14px; border: 2px solid #cbd5e1; border-radius: 3px; justify-self: center; }
+        .lm-name { font-size: 12px; font-weight: 650; color: #222; }
+        .lm-multi { font-weight: 800; color: #6b7280; }
+        .lm-amt { font-size: 12px; font-weight: 800; color: #ea580c; white-space: nowrap; }
       </style>
       <div style="font-family:'Inter',sans-serif; max-width:100%; margin:0 auto; color:#1a1a1a; font-size:10.5px;">
 
@@ -360,25 +381,36 @@ export function IngredientsCard() {
           Generato con <strong style="color:#ea580c;">LievitoMath</strong> · Algoritmo Q10 fermentativo · Disciplinare AVPN
         </p>
 
-        ${shopping.pizzaCount > 0 ? `
-        <div style="break-before: page; page-break-before: always;"></div>
-        <div style="margin-top:8px;">
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-            <h2 style="font-size:14px; font-weight:800; color:#0ea5e9; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Pizze</h2>
-            <div style="font-size:12px; color:#888; font-weight:600;">Totale: ${shopping.pizzaCount}</div>
-          </div>
-          <table style="width:100%; border-collapse:collapse; border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
-            ${shopping.selectedRows.map((row) => `
-              <tr style="border-bottom:1px solid #f0f0f0;">
-                <td style="padding:8px 10px; font-size:14px; font-weight:600; color:#222;">${row.name}</td>
-                <td style="padding:8px 10px; text-align:right;">
-                  <span style="display:inline-block; min-width:34px; background:#ea580c; color:white; border-radius:7px; padding:3px 10px; font-size:13px; font-weight:700;">× ${row.quantity}</span>
-                </td>
-              </tr>`).join('')}
-          </table>
+        ${shoppingListEnabled ? `
+          <div style="margin-top:10px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+              <h2 style="font-size:14px; font-weight:800; color:#0ea5e9; text-transform:uppercase; letter-spacing:0.06em; margin:0;">Pizze</h2>
+              <div style="font-size:12px; color:#888; font-weight:600;">Totale: ${shopping.pizzaCount}</div>
+            </div>
+            <div class="lm-card">
+              ${shopping.pizzaCount > 0 ? `
+                <table style="width:100%; border-collapse:collapse;">
+                  ${shopping.selectedRows.map((row) => `
+                    <tr style="border-bottom:1px solid #f0f0f0;">
+                      <td style="padding:8px 10px; font-size:12.5px; font-weight:600; color:#222;">${row.name}</td>
+                      <td style="padding:8px 10px; text-align:right;">
+                        <span style="display:inline-block; min-width:34px; background:#ea580c; color:white; border-radius:7px; padding:3px 10px; font-size:12px; font-weight:700;">× ${row.quantity}</span>
+                      </td>
+                    </tr>`).join('')}
+                </table>
+              ` : `<div class="lm-empty">Nessuna pizza selezionata.</div>`}
+            </div>
 
-	          <!-- Lista della spesa: stampala dalla sezione dedicata "Lista della spesa" -->
-	        </div>
+            <div style="margin-top:10px;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:7px;">
+                <div style="width:4px; height:18px; background:#ea580c; border-radius:2px;"></div>
+                <h2 style="font-size:12px; font-weight:800; color:#ea580c; text-transform:uppercase; letter-spacing:0.08em; margin:0;">Lista della spesa</h2>
+              </div>
+              <div class="lm-card">
+                ${shoppingItems ? `<div class="lm-columns">${shoppingItems}</div>` : `<div class="lm-empty">Aggiungi pizze dal menù.</div>`}
+              </div>
+            </div>
+          </div>
         ` : ''}
       </div>
     `;

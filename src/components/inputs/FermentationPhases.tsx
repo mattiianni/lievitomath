@@ -25,7 +25,6 @@ const PHASE_ICONS: Record<string, string> = {
   biga:     'inventory_2',
   poolish:  'water_drop',
   autolisi: 'pause_circle',
-  impasto:  'mix',
   frigo:    'ac_unit',
 };
 
