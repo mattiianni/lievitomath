@@ -114,11 +114,11 @@ export function BaseInputs() {
               onChange(clamped);
               setWeightDraft(String(clamped));
             }}
-            className="w-16 h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] text-center text-[21px] font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none outline-none focus:border-brand-500"
+            className="w-[76px] h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] text-center text-[21px] font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none outline-none focus:border-brand-500"
             aria-label={valueLabel}
           />
         ) : (
-          <div className="w-16 h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] flex items-center justify-center">
+          <div className="w-[76px] h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] flex items-center justify-center">
             <span className="text-[21px] font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none">
               {value}
             </span>
