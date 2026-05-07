@@ -2,7 +2,7 @@ import { useDoughStore } from '../../store/useDoughStore';
 import { SectionCard } from '../ui/SectionCard';
 import { Slider } from '../ui/Slider';
 import type { DoughMode } from '../../types/dough';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface ModeConfig {
   pieces: string;
@@ -43,9 +43,14 @@ export function BaseInputs() {
 
   const [weightDraft, setWeightDraft] = useState(String(s.weightPerPiece));
   const [weightEditing, setWeightEditing] = useState(false);
+  const weightInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    if (!weightEditing) setWeightDraft(String(s.weightPerPiece));
+    if (!weightEditing) {
+      const next = String(s.weightPerPiece);
+      setWeightDraft(next);
+      if (weightInputRef.current) weightInputRef.current.value = next;
+    }
   }, [s.weightPerPiece, weightEditing]);
 
   const Stepper = ({
@@ -81,17 +86,19 @@ export function BaseInputs() {
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
-            value={weightDraft}
+            defaultValue={weightDraft}
+            ref={weightInputRef}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
             onFocus={e => {
               setWeightEditing(true);
-              // Assicura che il campo rifletta il valore attuale quando si entra in edit
-              setWeightDraft(String(value));
               e.currentTarget.select();
             }}
-            onChange={e => {
-              // Permetti input intermedi (es. "9" -> "97" -> "970") anche su iOS/Safari:
-              // niente clamp qui, solo digits.
-              const next = e.currentTarget.value.replace(/[^\d]/g, '');
+            onInput={e => {
+              const input = e.currentTarget as HTMLInputElement;
+              const next = input.value.replace(/[^\d]/g, '');
+              if (next !== input.value) input.value = next;
               setWeightDraft(next);
             }}
             onKeyDown={e => {
@@ -103,17 +110,22 @@ export function BaseInputs() {
               setWeightEditing(false);
               const raw = weightDraft.trim();
               if (raw === '') {
-                setWeightDraft(String(value));
+                const next = String(value);
+                setWeightDraft(next);
+                if (weightInputRef.current) weightInputRef.current.value = next;
                 return;
               }
               const parsed = Math.round(Number(raw));
               if (Number.isNaN(parsed)) {
-                setWeightDraft(String(value));
+                const next = String(value);
+                setWeightDraft(next);
+                if (weightInputRef.current) weightInputRef.current.value = next;
                 return;
               }
-              const clamped = Math.min(max, Math.max(min, parsed));
-              onChange(clamped);
-              setWeightDraft(String(clamped));
+              const next = Math.max(1, parsed);
+              onChange(next);
+              setWeightDraft(String(next));
+              if (weightInputRef.current) weightInputRef.current.value = String(next);
             }}
             className="w-[76px] h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] text-center text-[21px] font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none outline-none focus:border-brand-500"
             aria-label={valueLabel}
