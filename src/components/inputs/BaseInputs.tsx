@@ -2,6 +2,7 @@ import { useDoughStore } from '../../store/useDoughStore';
 import { SectionCard } from '../ui/SectionCard';
 import { Slider } from '../ui/Slider';
 import type { DoughMode } from '../../types/dough';
+import { useEffect, useState } from 'react';
 
 interface ModeConfig {
   pieces: string;
@@ -40,6 +41,13 @@ export function BaseInputs() {
   const store = useDoughStore();
   const cfg = MODE_CONFIG[s.mode];
 
+  const [weightDraft, setWeightDraft] = useState(String(s.weightPerPiece));
+  const [weightEditing, setWeightEditing] = useState(false);
+
+  useEffect(() => {
+    if (!weightEditing) setWeightDraft(String(s.weightPerPiece));
+  }, [s.weightPerPiece, weightEditing]);
+
   const Stepper = ({
     value,
     onChange,
@@ -72,17 +80,39 @@ export function BaseInputs() {
           <input
             type="number"
             inputMode="numeric"
-            value={String(value)}
+            value={weightDraft}
             min={min}
             max={max}
             step={1}
-            onFocus={e => e.currentTarget.select()}
+            onFocus={e => {
+              setWeightEditing(true);
+              // Assicura che il campo rifletta il valore attuale quando si entra in edit
+              setWeightDraft(String(value));
+              e.currentTarget.select();
+            }}
             onChange={e => {
-              const raw = e.currentTarget.value;
-              if (raw.trim() === '') return;
-              const next = Math.round(Number(raw));
-              if (Number.isNaN(next)) return;
-              onChange(Math.min(max, Math.max(min, next)));
+              setWeightDraft(e.currentTarget.value);
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                (e.currentTarget as HTMLInputElement).blur();
+              }
+            }}
+            onBlur={() => {
+              setWeightEditing(false);
+              const raw = weightDraft.trim();
+              if (raw === '') {
+                setWeightDraft(String(value));
+                return;
+              }
+              const parsed = Math.round(Number(raw));
+              if (Number.isNaN(parsed)) {
+                setWeightDraft(String(value));
+                return;
+              }
+              const clamped = Math.min(max, Math.max(min, parsed));
+              onChange(clamped);
+              setWeightDraft(String(clamped));
             }}
             className="w-16 h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] text-center text-[21px] font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none outline-none focus:border-brand-500"
             aria-label={valueLabel}
