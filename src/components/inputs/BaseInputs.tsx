@@ -2,7 +2,7 @@ import { useDoughStore } from '../../store/useDoughStore';
 import { SectionCard } from '../ui/SectionCard';
 import { Slider } from '../ui/Slider';
 import type { DoughMode } from '../../types/dough';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface ModeConfig {
   pieces: string;
@@ -43,15 +43,10 @@ export function BaseInputs() {
 
   const [weightDraft, setWeightDraft] = useState(String(s.weightPerPiece));
   const [weightEditing, setWeightEditing] = useState(false);
-  const weightInputRef = useRef<HTMLInputElement | null>(null);
-  const weightSelectedOnceRef = useRef(false);
 
   useEffect(() => {
     if (!weightEditing) {
-      const next = String(s.weightPerPiece);
-      setWeightDraft(next);
-      if (weightInputRef.current) weightInputRef.current.value = next;
-      weightSelectedOnceRef.current = false;
+      setWeightDraft(String(s.weightPerPiece));
     }
   }, [s.weightPerPiece, weightEditing]);
 
@@ -88,24 +83,18 @@ export function BaseInputs() {
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
-            defaultValue={weightDraft}
-            ref={weightInputRef}
             autoComplete="off"
             autoCorrect="off"
             spellCheck={false}
-            onFocus={e => {
+            value={weightDraft}
+            onFocus={() => {
               setWeightEditing(true);
-              // Seleziona tutto solo la prima volta che si entra nel campo:
-              // su Safari/macOS alcuni edge-case possono ri-selezionare e far "sovrascrivere" cifra per cifra.
-              if (!weightSelectedOnceRef.current) {
-                weightSelectedOnceRef.current = true;
-                queueMicrotask(() => e.currentTarget.select());
-              }
+              // Non forzare select(): su Safari/Chrome può causare comportamenti strani col caret.
             }}
-            onInput={e => {
-              const input = e.currentTarget as HTMLInputElement;
-              const next = input.value.replace(/[^\d]/g, '');
-              if (next !== input.value) input.value = next;
+            onChange={e => {
+              // Consenti digitazione multi-cifra ovunque (desktop + iOS):
+              // aggiorna solo la bozza; applichiamo allo store su blur/Enter.
+              const next = e.currentTarget.value.replace(/[^\d]/g, '');
               setWeightDraft(next);
             }}
             onKeyDown={e => {
@@ -115,25 +104,20 @@ export function BaseInputs() {
             }}
             onBlur={() => {
               setWeightEditing(false);
-              weightSelectedOnceRef.current = false;
               const raw = weightDraft.trim();
               if (raw === '') {
-                const next = String(value);
-                setWeightDraft(next);
-                if (weightInputRef.current) weightInputRef.current.value = next;
+                setWeightDraft(String(value));
                 return;
               }
               const parsed = Math.round(Number(raw));
               if (Number.isNaN(parsed)) {
-                const next = String(value);
-                setWeightDraft(next);
-                if (weightInputRef.current) weightInputRef.current.value = next;
+                setWeightDraft(String(value));
                 return;
               }
+              // Campo "libero": niente min/max qui, solo >= 1
               const next = Math.max(1, parsed);
               onChange(next);
               setWeightDraft(String(next));
-              if (weightInputRef.current) weightInputRef.current.value = String(next);
             }}
             className="w-[76px] h-8 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-[#142044] text-center text-[21px] font-bold tabular-nums text-brand-600 dark:text-brand-400 leading-none outline-none focus:border-brand-500"
             aria-label={valueLabel}
