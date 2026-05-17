@@ -32,6 +32,10 @@ function normalizeIngredientName(input: string) {
   if (/^(?:salame|salamino)\s+piccante\b/i.test(name)) return 'Salamino Piccante';
   if (/^speck\b/i.test(name)) return 'Speck';
   if (/^pancetta\b/i.test(name)) return 'Pancetta';
+  if (/^salsiccia\b/i.test(name)) return 'Salsiccia';
+  if (/^wurstel\b/i.test(name)) return 'Wurstel';
+  if (/^ketchup piccante\b/i.test(name)) return 'Ketchup Piccante';
+  if (/^tuorlo d'uovo\b/i.test(name)) return "Tuorlo d'Uovo";
   return titleCase(name);
 }
 
@@ -43,6 +47,8 @@ function isAffettato(name: string) {
     'Salamino Piccante',
     'Speck',
     'Pancetta',
+    'Salsiccia',
+    'Wurstel',
   ].includes(name);
 }
 
